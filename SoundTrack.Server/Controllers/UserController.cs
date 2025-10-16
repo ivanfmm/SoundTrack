@@ -8,7 +8,7 @@ using System.Configuration;
 namespace SoundTrack.Server.Controllers
 {
     [ApiController]
-    [Route("[Users]")]
+    [Route("[User]")]
     public class UserController : Controller
     {
         private readonly ISoundTrackRepository _SoundTrackRepository;

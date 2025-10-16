@@ -4,7 +4,7 @@ using SoundTrack.Server.Services;
 namespace SoundTrack.Server.Controllers
 {
     [ApiController]
-    [Route("[SongProfile]")]
+    [Route("[Song]")]
     public class SongProfileController : Controller
     {
         private readonly ISoundTrackRepository _SoundTrackRepository;
