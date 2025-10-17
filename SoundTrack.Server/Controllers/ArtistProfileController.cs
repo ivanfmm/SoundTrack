@@ -7,7 +7,7 @@ using System.Configuration;
 namespace SoundTrack.Server.Controllers
 {
     [ApiController]
-    [Route("[Artist]")]
+    [Route("api/[controller]")]
     public class ArtistProfileController : Controller
     {
         private readonly ISoundTrackRepository _SoundTrackRepository;

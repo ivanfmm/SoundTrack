@@ -5,7 +5,7 @@ using SoundTrack.Server.Services;
 namespace SoundTrack.Server.Controllers
 {
     [ApiController]
-    [Route("[Review]")]
+    [Route("api/[controller]")]
     public class ReviewController : Controller
     {
         private readonly ISoundTrackRepository _SoundTrackRepository;
