@@ -1,3 +1,24 @@
+#Dependencias
+Para poder correr el código, de preferencia correrlo en Visual Studio, para poder usar:
+- ASP.NET:
+-> Swashbuckle.AspNetCore
+-> Microsoft.EntityFrameworkCore
+-> Microsoft.EntityFrameworkCore.Design
+-> Microsoft.EntityFrameworkCore.Relational
+-> Npgsql.EntityFrameworkCore.PostgreSQL
+-> Microsoft.AspNetCore.SpaProxy
+
+- React:
+-> react
+-> react-dom
+-> react-router-dom
+-> vite (y rolldown-vite)
+-> @vitejs/plugin-react
+-> eslint
+-> @types/react y @types/react-dom
+
+Para poder conectarse a la base de datos, es necesario en la carpeta SoundTrack.Server correr el comando: dotnet user-secrets set "ConnectionStrings:DefaultConnection" "SupabaseConnection = Host=db.ywzspxwxcqzyhttjrbrh.supabase.co;Database=postgres;Username=postgres;Password=12345SoundTrack12345!SSL Mode=Require;Trust Server Certificate=true"
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
