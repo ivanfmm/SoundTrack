@@ -1,0 +1,31 @@
+/* Estilos específicos de SongProfile */
+
+.song-profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Botón para crear review */
+.review-actions {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.btn-create-review {
+    background: var(--color-electric-blue);
+    color: var(--color-white);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-create-review:hover {
+    background: var(--color-neon-green);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
+}

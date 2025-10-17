@@ -1,0 +1,86 @@
+.review-form-container {
+    background: var(--color-soft-black);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 2px solid var(--color-electric-blue);
+    margin: 2rem 0;
+}
+
+.review-form-container h3 {
+    color: var(--color-neon-green);
+    margin-bottom: 1.5rem;
+}
+
+.review-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    color: var(--color-electric-blue);
+    font-weight: bold;
+}
+
+#review-text {
+    background: var(--color-dark-gray);
+    border: 2px solid var(--color-electric-blue);
+    color: var(--color-white);
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+    outline: none;
+}
+
+#review-text:focus {
+    border-color: var(--color-neon-green);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-submit-review {
+    background: var(--color-neon-green);
+    color: var(--color-base-black);
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-submit-review:hover {
+    background: var(--color-cyan);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 212, 0.3);
+}
+
+.btn-cancel-review {
+    background: transparent;
+    color: var(--color-white);
+    border: 2px solid var(--color-dark-gray);
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel-review:hover {
+    border-color: var(--color-electric-blue);
+    background: var(--color-dark-gray);
+}
