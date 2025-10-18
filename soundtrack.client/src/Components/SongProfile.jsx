@@ -5,6 +5,7 @@ import ReviewForm from './ReviewForm';
 import ReviewsList from './ReviewList';
 import './Common/Common.css';
 import './SongProfile.css';
+import { getSpotifyToken } from '../api/spotify';
 
 //temporal se quitara cuando el api jale (solo el mockdata)
 import {mockSongs } from '../data/mockData';
@@ -74,21 +75,52 @@ const SongProfile = () => {
             // Simular una llamada a API con un delay
             await new Promise(resolve => setTimeout(resolve, 500));
             
-            // Buscar la cancion en los datos mock
-            const foundSong = mockSongs.find(s => s.id === id);
-            
-            if (foundSong) {
-                setSong(foundSong);
-                setReviews(foundSong.reviews || []);
+            //Buscar el token de spotify (no se si sea necesario aqui)
+            const token = await getSpotifyToken();
+
+            if(token){
+                const response = await fetch(`https://api.spotify.com/v1/tracks/${id}`,{
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                }
+                });
+             
+                const data = await response.json();
+                if(data){
+                    const cancionSpotify={
+                        id: data.id,
+                        name: data.name,
+                        imageUrl: data.album.images[0]?.url,
+                        score: 5,
+                        publicationDate: data.album.release_date,
+                        generes:[],
+                        tags:[],
+                        artists: data.artists,
+                        album: data.album,
+                        reviews:[]
+                    };
+
+                    setSong(cancionSpotify);
+                    setReviews([]);
+                    setLoading(false);
+                    return;
+                }
             }
             
-            setLoading(false);
+            // Buscar la cancion en los datos mock
+            //const foundSong = mockSongs.find(s => s.id === id);
+            
+           // if (foundSong) {
+           //     setSong(foundSong);
+           //     setReviews(foundSong.reviews || []);
+           // }
+            
+        //    setLoading(false);
         } catch (error) {
             console.error('Error fetching song data:', error);
             setLoading(false);
         }
     };
-
     const handleSubmitReview = async (reviewData) => {
         try {
             // Simular guardado de review
@@ -195,6 +227,6 @@ const SongProfile = () => {
             <ReviewsList reviews={reviews} />
         </div>
     );
-};
+}
 
 export default SongProfile;

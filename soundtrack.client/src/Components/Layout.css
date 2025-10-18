@@ -37,6 +37,7 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
+    width: 100vw;
 }
 
 /* Navbar */
@@ -68,7 +69,7 @@ body {
         color: var(--color-cyan);
     }
 
-/* Navbar Center - Búsqueda */
+/* Navbar Center - Bï¿½squeda */
 .navbar-center {
     display: flex;
     justify-content: center;

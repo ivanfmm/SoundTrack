@@ -1,8 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import './Layout.css';
+import { useNavigate } from 'react-router-dom';
+
+
 
 const Layout = () => {
+    //Para poder usar navbar
+    const navigate = useNavigate();
+    const [searchQuery , setSearchQuery] = useState("");
+
+    const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+        navigate(`/search/${searchQuery}`);
+        setSearchQuery("");
+    }
+    };
     return (
         <div className="app-container">
             <header className="app-header">
@@ -21,11 +35,16 @@ const Layout = () => {
                     // Busqueda Centro
                     }
                     <div className="navbar-center">
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            className="search-input"
-                        />
+                        <form onSubmit={handleSearch}>
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                className="search-input"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </form>
+                      
                     </div>
 
                     {

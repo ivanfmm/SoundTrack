@@ -1,4 +1,11 @@
 /* Estilos específicos de SongProfile */
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  
+}
+
 
 .song-profile-container {
     max-width: 1200px;

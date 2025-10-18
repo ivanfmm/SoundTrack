@@ -1,0 +1,137 @@
+
+.album-profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.album-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.stat-card {
+    background: var(--color-soft-black);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-dark-gray);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    border-color: var(--color-electric-blue);
+    transform: translateY(-2px);
+}
+
+.track-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--color-neon-green);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+.album-tracks-section {
+    margin: 3rem 0;
+}
+
+.album-tracks-title {
+    color: var(--color-neon-green);
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.track-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.track-item {
+    background: var(--color-soft-black);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--color-dark-gray);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.track-item:hover {
+    border-color: var(--color-electric-blue);
+    transform: translateX(5px);
+    background: var(--color-dark-gray);
+}
+
+.track-number {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: bold;
+    font-size: 1.2rem;
+    min-width: 30px;
+}
+
+.track-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.track-name {
+    color: var(--color-white);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.track-artists {
+    color: var(--color-electric-blue);
+    font-size: 0.9rem;
+}
+
+.track-right {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.track-duration {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    min-width: 50px;
+    text-align: right;
+}
+.track-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .track-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .track-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

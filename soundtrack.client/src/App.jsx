@@ -2,6 +2,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './Components/Layout';
 import SongProfile from "./Components/SongProfile";
 import './App.css';
+import Home from './Components/Home';
+import ArtistProfile from './Components/ArtistProfile';
+import AlbumProfile from './Components/AlbumProfile';
+import Searched from './Components/Searched';
 
 function App() {
 
@@ -9,7 +13,12 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<Layout />}>
-                    <Route index element={
+                    <Route index element={<Home />}
+                    
+                    /*
+                    Vista de bienvenida de Chris 
+                    
+                    ={
                         <div style={{ 
                             textAlign: 'center', 
                             padding: '4rem 2rem',
@@ -32,11 +41,17 @@ function App() {
                                 Descubre, califica y comparte tu pasión por la música.
                             </p>
                         </div>
-                    } />
+                    } */
+                    
+                    />
+                    
                     <Route path="/song/:id" element={<SongProfile />} />
                     {/* en trabajop 🚧🚧 no pasar (aqui van a ir las demas vistas probablemente copy paste) */}
-
+                    <Route path="/artist/:id" element={<ArtistProfile/>}/>
+                    <Route path="/album/:id" element={<AlbumProfile/>}/>
+                    <Route path="/search/:query" element={<Searched />} />
                 </Route>
+                
             </Routes>
         </Router>
     );
