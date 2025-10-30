@@ -2,6 +2,6 @@
 {
     public class DatabaseConfig
     {
-        public string DefaultConnectionString { get; set; }
+        public string SupabaseConnection { get; set; }
         }
 }
