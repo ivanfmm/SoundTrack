@@ -7,51 +7,75 @@ const ReviewForm = ({ onSubmit, onCancel }) => {
         score: 5,
         description: ''
     });
+    const [loading, setLoading] = useState(false);
 
-    //manda formulario (cambiara cuando se conecte DB..... probablemente)
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onSubmit(review);
-        setReview({ score: 5, description: '' });
+        setLoading(true);
+
+        try {
+            const response = await fetch('https://localhost:7232/api/review', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    author: "Pepito43",
+                    description: review.description,
+                    score: review.score,
+                    publicationDate: new Date().toISOString(),
+                    likes: 0,
+                    dislikes: 0
+                })
+            });
+
+            if (response.ok) {
+                const savedReview = await response.json();
+                onSubmit(savedReview);
+                setReview({ score: 5, description: '' });
+                alert('Review publicada exitosamente!');
+            } else {
+                alert('Error al publicar la review');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error de conexión con el servidor');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="review-form-container">
-            {
-                //formato del cuadrito de comentario
-            }
             <h3>Escribe tu review</h3>
             <form onSubmit={handleSubmit} className="review-form">
                 <div className="form-group">
                     <label>Tu calificacion:</label>
-                    <InteractiveStars 
+                    <InteractiveStars
                         score={review.score}
-                        onChange={(score) => setReview({...review, score})}
+                        onChange={(score) => setReview({ ...review, score })}
                     />
                 </div>
 
-                {
-                    //ya el cuadrito donde van a escribir
-                }
                 <div className="form-group">
                     <label htmlFor="review-text">Tu opinion:</label>
                     <textarea
                         id="review-text"
                         value={review.description}
-                        onChange={(e) => setReview({...review, description: e.target.value})}
+                        onChange={(e) => setReview({ ...review, description: e.target.value })}
                         placeholder="Que te parecio?"
                         rows="5"
                         required
                     />
                 </div>
 
-
-                {
-                    //la publica o nel
-                }
                 <div className="form-actions">
-                    <button type="submit" className="btn-submit-review">
-                        Publicar Review
+                    <button
+                        type="submit"
+                        className="btn-submit-review"
+                        disabled={loading}
+                    >
+                        {loading ? 'Publicando...' : 'Publicar Review'}
                     </button>
                     {onCancel && (
                         <button type="button" className="btn-cancel-review" onClick={onCancel}>
