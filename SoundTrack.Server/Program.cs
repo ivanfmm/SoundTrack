@@ -19,8 +19,6 @@ namespace SoundTrack.Server
                 options.AddPolicy(name: myAllowSpecificOrigins,
                                   policy =>
                                   {
-                                      // ¡AQUÍ ESTÁ LA MAGIA!
-                                      // Le decimos que confíe en el origen de tu app de React
                                       policy.WithOrigins("https://localhost:49825")
                                             .AllowAnyHeader()
                                             .AllowAnyMethod();
