@@ -40,7 +40,10 @@ namespace SoundTrack.Server.Services
         //Reviews
         public Task<List<Review>> GetAllReviews();
         public Task<Review?> GetReviewById(int id);
+        //public void addReview(Review review);
         public void addReview(Review review);
+        //public async Task addReview(Review review);
+
         public void updateReview(Review review);
         public void deleteReview(Review review);
 

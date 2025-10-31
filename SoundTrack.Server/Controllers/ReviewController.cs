@@ -37,6 +37,12 @@ namespace SoundTrack.Server.Controllers
             _SoundTrackRepository.addReview(review);
             return CreatedAtAction(nameof(GetReviewById), new { id = review.Id }, review);
         }
+        //[HttpPost]
+        //public async Task<IActionResult> AddReview([FromBody] Models.Review review)
+        //{
+        //    await _SoundTrackRepository.addReview(review);
+        //    return CreatedAtAction(nameof(GetReviewById), new { id = review.Id }, review);
+        //}
         [HttpPut("{id}")]
         public IActionResult UpdateReview(int id, [FromBody] Models.Review review)
         {

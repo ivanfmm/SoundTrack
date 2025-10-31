@@ -6,7 +6,7 @@ using System.Configuration;
 
 namespace SoundTrack.Server
 {
-    public class  Program
+    public class Program
     {
         public static void Main(string[] args)
         {
@@ -65,4 +65,3 @@ namespace SoundTrack.Server
     }
 
 }
-
