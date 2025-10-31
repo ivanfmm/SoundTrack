@@ -21,6 +21,7 @@ const ReviewForm = ({ onSubmit, onCancel }) => {
                 },
                 body: JSON.stringify({
                     author: "Pepito43",
+                    userId: 1,
                     description: review.description,
                     score: review.score,
                     publicationDate: new Date().toISOString(),

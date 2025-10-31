@@ -30,12 +30,12 @@ namespace SoundTrack.Server.Services
         public void AddUser(User user)
         {
             _context.Users.Add(user);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
         public void UpdateUser(User user)
         {
             _context.Users.Update(user);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
         public void DeleteUser(User user)
         {
@@ -59,17 +59,17 @@ namespace SoundTrack.Server.Services
         public void addArtistProfile(ArtistProfile artistProfile)
         {
             _context.ArtistProfiles.Add(artistProfile);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
         public void updateArtistProfile(ArtistProfile artistProfile)
         {
             _context.ArtistProfiles.Update(artistProfile);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
         public void deleteArtistProfile(ArtistProfile artistProfile)
         {
             _context.ArtistProfiles.Remove(artistProfile);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
 
         //AlbumProfile
@@ -88,17 +88,17 @@ namespace SoundTrack.Server.Services
         public void addAlbumProfile(AlbumProfile albumProfile)
         {
             _context.AlbumProfiles.Add(albumProfile);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
         public void updateAlbumProfile(AlbumProfile albumProfile)
         {
             _context.AlbumProfiles.Update(albumProfile);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
         public void deleteAlbumProfile(AlbumProfile albumProfile)
         {
             _context.AlbumProfiles.Remove(albumProfile);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
 
 
@@ -118,18 +118,18 @@ namespace SoundTrack.Server.Services
         public void addSongProfile(SongProfile songProfile)
         {
             _context.SongProfiles.Add(songProfile);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
         public void updateSongProfile(SongProfile songProfile)
         {
             _context.SongProfiles.Update(songProfile);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
 
         }
         public void deleteSongProfile(SongProfile songProfile)
         {
             _context.SongProfiles.Remove(songProfile);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
 
 
@@ -145,18 +145,28 @@ namespace SoundTrack.Server.Services
         public void addReview(Review review)
         {
             _context.Reviews.Add(review);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
+        //public async Task addReview(Models.Review review)
+        //{
+        //    // 1. Agrega la review al "paquete" de cambios
+        //    _context.Reviews.Add(review);
+
+        //    // 2. ¡ESTA ES LA LÍNEA MÁGICA QUE FALTABA!
+        //    //    Envía el "paquete" de cambios a la base de datos de Supabase
+        //    //    y ESPERA a que termine.
+        //    await _context.SaveChangesAsync();
+        //}
         public void updateReview(Review review)
         {
             _context.Reviews.Update(review);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
 
         public void deleteReview(Review review)
         {
             _context.Reviews.Remove(review);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
 
         //ReviewComments
@@ -171,17 +181,17 @@ namespace SoundTrack.Server.Services
         public void addReviewComment(ReviewComment reviewComment)
         {
             _context.ReviewComments.Add(reviewComment);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
         public void updateReviewComment(ReviewComment reviewComment)
         {
             _context.ReviewComments.Update(reviewComment);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
         public void deleteReviewComment(ReviewComment reviewComment)
         {
             _context.ReviewComments.Remove(reviewComment);
-            _context.SaveChangesAsync();
+            _context.SaveChanges();
         }
 
 
