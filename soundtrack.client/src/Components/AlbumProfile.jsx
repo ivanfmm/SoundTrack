@@ -11,7 +11,6 @@ import StarRating from './Common/StarRating';
 const AlbumProfile = () => {
     const { id } = useParams();
     const [album, setAlbum] = useState(null);
-    const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showReviewForm, setShowReviewForm] = useState(false);
 
@@ -59,33 +58,12 @@ const AlbumProfile = () => {
         }
     };
 
-    const handleSubmitReview = async (reviewData) => {
-        try {
-            const newReview = {
-                id: reviews.length + 1,
-                userId: 1,
-                author: "Pepito43",
-                description: reviewData.description,
-                score: reviewData.score,
-                publicationDate: new Date().toISOString(),
-                likes: 0,
-                dislikes: 0
-            };
-
-            setReviews([newReview, ...reviews]);
-            setShowReviewForm(false);
-
-            // Recalcular score promedio
-            const allReviews = [newReview, ...reviews];
-            const avgScore = Math.round(
-                allReviews.reduce((sum, r) => sum + r.score, 0) / allReviews.length
-            );
-            setAlbum({ ...album, score: avgScore });
-
-            console.log('Review creada:', newReview);
-        } catch (error) {
-            console.error('Error submitting review:', error);
-        }
+    //copy paste del de canciones
+    const handleSubmitReview = async (savedReview) => {
+        console.log('Review guardada exitosamente:', savedReview);
+        setShowReviewForm(false);
+        // Forzar recarga de las reviews
+        window.location.reload();
     };
 
   
@@ -162,36 +140,36 @@ const AlbumProfile = () => {
                 )}
             </div>
 
-          {/* Lista de canciones */}
-<div className="album-tracks-section">
-    <h2 className="album-tracks-title">🎵 Canciones</h2>
-    <div className="track-list">
-        {album.tracks.map((track, index) => (
-            <Link 
-                key={track.id} 
-                to={`/song/${track.id}`}
-                className="track-item"
-            >
-                <div className="track-left">
-                    <div className="track-number">{index + 1}</div>
-                    <div className="track-info">
-                        <div className="track-name">{track.name}</div>
-                        <div className="track-artists">
-                            {track.artists.map(a => a.name).join(', ')}
-                        </div>
-                    </div>
+            {/* Lista de canciones */}
+            <div className="album-tracks-section">
+                <h2 className="album-tracks-title">🎵 Canciones</h2>
+                <div className="track-list">
+                    {album.tracks.map((track, index) => (
+                        <Link 
+                            key={track.id} 
+                            to={`/song/${track.id}`}
+                            className="track-item"
+                        >
+                            <div className="track-left">
+                                <div className="track-number">{index + 1}</div>
+                                <div className="track-info">
+                                    <div className="track-name">{track.name}</div>
+                                    <div className="track-artists">
+                                        {track.artists.map(a => a.name).join(', ')}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="track-right">
+                                <div className="track-rating">
+                                    <StarRating score={4} size="small" />
+                                </div>
+                                
+                            </div>
+                        </Link>
+                    ))}
                 </div>
-                
-                <div className="track-right">
-                    <div className="track-rating">
-                        <StarRating score={4} size="small" />
-                    </div>
-                    
-                </div>
-            </Link>
-        ))}
-    </div>
-</div>
+            </div>
 
             {/* Reviews */}
             <div className="review-actions">
@@ -207,10 +185,15 @@ const AlbumProfile = () => {
                 <ReviewForm 
                     onSubmit={handleSubmitReview}
                     onCancel={() => setShowReviewForm(false)}
+                    profileId={id}
+                    profileType="album"
                 />
             )}
 
-            <ReviewsList reviews={reviews} />
+            <ReviewsList 
+                profileId={id}
+                profileType="album"
+            />
         </div>
     );
 };

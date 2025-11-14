@@ -13,8 +13,8 @@ using SoundTrack.Server.Data;
 namespace SoundTrack.Server.Migrations
 {
     [DbContext(typeof(SoundTrackContext))]
-    [Migration("20251031001819_firstCreation")]
-    partial class firstCreation
+    [Migration("20251114195119_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
