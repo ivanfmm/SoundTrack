@@ -16,10 +16,29 @@ const ArtistProfile = () => {
     const [albums, setAlbums] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showReviewForm, setShowReviewForm] = useState(false);
+    const [averageScore, setAverageScore] = useState(null);
+    const [totalReviews, setTotalReviews] = useState(0);
 
     useEffect(() => {
         fetchArtistData();
+        fetchAverageScore();
     }, [id]);
+
+    const fetchAverageScore = async () => {
+        try {
+            const response = await fetch(
+                `https://localhost:7232/api/review/average-score/${id}?profileType=artist`
+            );
+            
+            if (response.ok) {
+                const data = await response.json();
+                setAverageScore(data.averageScore);
+                setTotalReviews(data.totalReviews);
+            }
+        } catch (error) {
+            console.error('Error al cargar promedio:', error);
+        }
+    };
 
     const fetchArtistData = async () => {
         try {
@@ -38,7 +57,6 @@ const ArtistProfile = () => {
                 id: artistData.id,
                 name: artistData.name,
                 imageUrl: artistData.images[0]?.url || '/placeholder.png',
-                score: 5, 
                 description: `${artistData.name} tiene ${artistData.followers.total.toLocaleString()} seguidores en Spotify.`,
                 genres: artistData.genres || [],
                 tags: [],
@@ -81,6 +99,7 @@ const ArtistProfile = () => {
     const handleSubmitReview = async (savedReview) => {
         console.log('Review guardada exitosamente:', savedReview);
         setShowReviewForm(false);
+        await fetchAverageScore();
         // Forzar recarga de las reviews
         window.location.reload();
     };
@@ -120,7 +139,8 @@ const ArtistProfile = () => {
                 imageUrl={artist.imageUrl}
                 title={artist.name}
                 metadata={metadata}
-                score={artist.score}
+                score={averageScore}
+                totalReviews={totalReviews}
                 genres={artist.genres}
                 tags={artist.tags}
                 description={artist.description}

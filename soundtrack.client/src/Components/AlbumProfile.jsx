@@ -13,10 +13,29 @@ const AlbumProfile = () => {
     const [album, setAlbum] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showReviewForm, setShowReviewForm] = useState(false);
+    const [averageScore, setAverageScore] = useState(null);
+    const [totalReviews, setTotalReviews] = useState(0);
 
     useEffect(() => {
         fetchAlbumData();
+        fetchAverageScore();
     }, [id]);
+
+    const fetchAverageScore = async () => {
+        try {
+            const response = await fetch(
+                `https://localhost:7232/api/review/average-score/${id}?profileType=album`
+            );
+            
+            if (response.ok) {
+                const data = await response.json();
+                setAverageScore(data.averageScore);
+                setTotalReviews(data.totalReviews);
+            }
+        } catch (error) {
+            console.error('Error al cargar promedio:', error);
+        }
+    };
 
     const fetchAlbumData = async () => {
         try {
@@ -37,7 +56,6 @@ const AlbumProfile = () => {
                 id: albumData.id,
                 name: albumData.name,
                 imageUrl: albumData.images[0]?.url || '/placeholder.png',
-                score: 5, 
                 description: `Álbum lanzado el ${new Date(albumData.release_date).toLocaleDateString('es-ES')} con ${albumData.total_tracks} canciones.`,
                 genres: albumData.genres || [],
                 tags: [],
@@ -62,6 +80,7 @@ const AlbumProfile = () => {
     const handleSubmitReview = async (savedReview) => {
         console.log('Review guardada exitosamente:', savedReview);
         setShowReviewForm(false);
+        await fetchAverageScore();
         // Forzar recarga de las reviews
         window.location.reload();
     };
@@ -113,7 +132,8 @@ const AlbumProfile = () => {
                 title={album.name}
                 subtitle={album.artists.map(a => a.name).join(', ')}
                 metadata={metadata}
-                score={album.score}
+                score={averageScore}
+                totalReviews={totalReviews}
                 genres={album.genres}
                 tags={album.tags}
                 description={album.description}
