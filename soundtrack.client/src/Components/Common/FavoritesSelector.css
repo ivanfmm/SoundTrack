@@ -1,0 +1,141 @@
+/* FavoritesSelector.css */
+
+.favorites-selector {
+    margin: 1rem 0 2rem 0;
+}
+
+.favorites-selector-disabled {
+    padding: 1rem;
+    background: rgba(29, 185, 84, 0.1);
+    border-radius: 8px;
+    text-align: center;
+    color: #1DB954;
+    margin: 1rem 0 2rem 0;
+}
+
+.search-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.search-input {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #1DB954;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.search-btn {
+    padding: 0.8rem 1.5rem;
+    background: #1DB954;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-btn:hover:not(:disabled) {
+    background: #1ed760;
+    transform: scale(1.05);
+}
+
+.search-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Search Results */
+.search-results {
+    max-height: 400px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-result-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
+}
+
+.result-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.result-info {
+    flex: 1;
+}
+
+.result-name {
+    color: #fff;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+}
+
+.result-subtitle {
+    color: #b3b3b3;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.btn-add {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    color: #1DB954;
+    border: 2px solid #1DB954;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-add:hover {
+    background: #1DB954;
+    color: white;
+}
+
+/* Scrollbar */
+.search-results::-webkit-scrollbar {
+    width: 8px;
+}
+
+.search-results::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+    background: #1DB954;
+    border-radius: 4px;
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+    background: #1ed760;
+}

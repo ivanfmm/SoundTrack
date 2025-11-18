@@ -23,6 +23,14 @@ namespace SoundTrack.Server.Services
         public void updateArtistProfile(ArtistProfile artistProfile);
         public void deleteArtistProfile(ArtistProfile artistProfile);
 
+        //ArtistFollow
+        public Task<ArtistFollow?> FollowArtist(int userId, string artistId);
+        public Task<bool> UnfollowArtist(int userId, string artistId);
+        public Task<bool> IsFollowingArtist(int userId, string artistId);
+        public Task<List<ArtistProfile>> GetUserFollowedArtists(int userId);
+        public Task<int> GetArtistFollowersCount(string artistId);
+        public Task<List<User>> GetArtistFollowers(string artistId);
+
         //AlbumProfile
         public Task<List<AlbumProfile>> GetAllAlbumProfile();
         public Task<AlbumProfile?> GetAlbumProfileById(string id);

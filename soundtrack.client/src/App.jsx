@@ -6,6 +6,7 @@ import Home from './Components/Home';
 import ArtistProfile from './Components/ArtistProfile';
 import AlbumProfile from './Components/AlbumProfile';
 import Searched from './Components/Searched';
+import UserProfile from './Components/UserProfile';
 
 function App() {
 
@@ -50,6 +51,12 @@ function App() {
                     <Route path="/artist/:id" element={<ArtistProfile/>}/>
                     <Route path="/album/:id" element={<AlbumProfile/>}/>
                     <Route path="/search/:query" element={<Searched />} />
+                    {/* ruta para el perfil */}
+                    <Route path="/profile/:id" element={<UserProfile />} />
+                    {/* Descomentar cuando ya este la autentificacion y mandar a crear cuenta o iniciar sesion
+                    <Route path="/profile" element={<UserProfile />} />
+                    */}
+                    
                 </Route>
                 
             </Routes>

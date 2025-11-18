@@ -266,3 +266,40 @@ export const searchSpotify = async (query) => {
         return { tracks: [], artists: [], albums: [] };
     }
 };
+
+//Para los Trending tracks de los usuario
+export const getTrackById = async (trackId) => {
+    const token = await getSpotifyToken();
+    
+    if (!token) {
+        console.error("No token disponible");
+        return null;
+    }
+    
+    try {
+        console.log("Obteniendo track, ID:", trackId);
+        
+        const response = await fetch(
+            `https://api.spotify.com/v1/tracks/${trackId}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error("Error obteniendo track:", data.error);
+            return null;
+        }
+        
+        console.log("Track obtenido:", data);
+        return data;
+        
+    } catch (error) {
+        console.error("Error en getTrackById:", error);
+        return null;
+    }
+};

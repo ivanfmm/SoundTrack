@@ -120,6 +120,80 @@ namespace SoundTrack.Server.Services
             _context.SaveChanges();
         }
 
+        //ArtistFollow
+        public async Task<ArtistFollow?> FollowArtist(int userId, string artistId)
+        {
+            // Verificar si ya sigue al artista
+            var existingFollow = await _context.ArtistFollows
+                .FirstOrDefaultAsync(af => af.UserId == userId && af.ArtistProfileId == artistId);
+
+            if (existingFollow != null)
+            {
+                // Ya lo sigue, retornar null o el existente
+                return null;
+            }
+
+            // Crear nuevo follow
+            var artistFollow = new ArtistFollow
+            {
+                UserId = userId,
+                ArtistProfileId = artistId,
+                FollowDate = DateTime.UtcNow
+            };
+
+            _context.ArtistFollows.Add(artistFollow);
+            await _context.SaveChangesAsync();
+
+            return artistFollow;
+        }
+
+        public async Task<bool> UnfollowArtist(int userId, string artistId)
+        {
+            var artistFollow = await _context.ArtistFollows
+                .FirstOrDefaultAsync(af => af.UserId == userId && af.ArtistProfileId == artistId);
+
+            if (artistFollow == null)
+            {
+                return false; // No estaba siguiendo al artista
+            }
+
+            _context.ArtistFollows.Remove(artistFollow);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> IsFollowingArtist(int userId, string artistId)
+        {
+            return await _context.ArtistFollows
+                .AnyAsync(af => af.UserId == userId && af.ArtistProfileId == artistId);
+        }
+
+        public async Task<List<ArtistProfile>> GetUserFollowedArtists(int userId)
+        {
+            return await _context.ArtistFollows
+                .Where(af => af.UserId == userId)
+                .Include(af => af.ArtistProfile)
+                .OrderByDescending(af => af.FollowDate)
+                .Select(af => af.ArtistProfile)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetArtistFollowersCount(string artistId)
+        {
+            return await _context.ArtistFollows
+                .CountAsync(af => af.ArtistProfileId == artistId);
+        }
+
+        public async Task<List<User>> GetArtistFollowers(string artistId)
+        {
+            return await _context.ArtistFollows
+                .Where(af => af.ArtistProfileId == artistId)
+                .Include(af => af.User)
+                .OrderByDescending(af => af.FollowDate)
+                .Select(af => af.User)
+                .ToListAsync();
+        }
         //AlbumProfile
         public async Task<List<AlbumProfile>> GetAllAlbumProfile()
         {
