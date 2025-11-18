@@ -1,3 +1,4 @@
+﻿
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using SoundTrack.Server.Data;
@@ -24,10 +25,19 @@ namespace SoundTrack.Server
                                             .AllowAnyMethod();
                                   });
             });
+            builder.Services.AddHttpClient(); // Para SpotifyProfileService
+            builder.Services.AddScoped<ISpotifyProfileService, SpotifyProfileService>();
 
 
             var databaseConfig = builder.Configuration.GetSection("ConnectionStrings").Get<DatabaseConfig>();
             Console.WriteLine($"la conexion es: {databaseConfig.SupabaseConnection}, se logr");
+
+            // ⭐ AGREGAR ESTAS LÍNEAS PARA DEBUG
+            var spotifyClientId = builder.Configuration["Spotify:ClientId"];
+            var spotifyClientSecret = builder.Configuration["Spotify:ClientSecret"];
+            Console.WriteLine($"Spotify ClientId: {spotifyClientId ?? "NULL"}");
+            Console.WriteLine($"Spotify ClientSecret: {(string.IsNullOrEmpty(spotifyClientSecret) ? "NULL" : "***EXISTE***")}");
+
             builder.Services.AddDbContext<SoundTrackContext>(options => options.UseNpgsql(databaseConfig.SupabaseConnection)); //mando a llamar el contexto para usar ORM, y le paso la configuracion para la base de 
             builder.Services.AddControllers();
 

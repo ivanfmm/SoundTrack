@@ -529,6 +529,59 @@
     }
 }
 
+.like-btn.active {
+    background: var(--color-electric-blue);
+    border-color: var(--color-electric-blue);
+    color: var(--color-white);
+    font-weight: bold;
+}
+
+.dislike-btn.active {
+    background: rgba(255, 0, 0, 0.3);
+    border-color: red;
+    color: var(--color-white);
+    font-weight: bold;
+}
+
+.average-score-container {
+    background: linear-gradient(135deg, rgba(30, 215, 96, 0.1) 0%, rgba(29, 185, 84, 0.05) 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(30, 215, 96, 0.2);
+}
+
+.average-score-content {
+    text-align: center;
+}
+
+.average-score-content h3 {
+    color: #1DB954;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.average-score-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.average-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+.total-reviews-text {
+    color: #b3b3b3;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
 /* ========================================
    LOADING Y ERROR STATES
    ======================================== */

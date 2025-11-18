@@ -7,15 +7,13 @@ import './Common/Common.css';
 import './SongProfile.css';
 import { getSpotifyToken } from '../api/spotify';
 
-//temporal se quitara cuando el api jale (solo el mockdata)
-import {mockSongs } from '../data/mockData';
-
 const SongProfile = () => {
     const { id } = useParams();
     const [song, setSong] = useState(null);
-    const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showReviewForm, setShowReviewForm] = useState(false);
+    const [averageScore, setAverageScore] = useState(null);
+    const [totalReviews, setTotalReviews] = useState(0);
 
 
     {
@@ -23,57 +21,30 @@ const SongProfile = () => {
     }
     useEffect(() => {
         fetchSongData();
+        fetchAverageScore();
     }, [id]);
 
-    /*
-    //creo que si jalaria si estuviera el api (segun gemini esos son los formatos del data que necesitamos)
-    //La nt esto si no se me rendi y nada mas deje lo que creo que funcionara
-    const fetchSongData = async () => {
+    const fetchAverageScore = async () => {
         try {
-            const response = await fetch(`/Song/${id}`);
-            const data = await response.json();
-            setSong(data);
-            setReviews(data.reviews || []);
-            setLoading(false);
-        } catch (error) {
-            console.error('Error fetching song data:', error);
-            setLoading(false);
-        }
-    };
-
-    const handleSubmitReview = async (reviewData) => {
-        try {
-            const payload = {
-                userId: 1,
-                author: "Pepito43",
-                description: reviewData.description,
-                score: reviewData.score,
-                publicationDate: new Date().toISOString(),
-                likes: 0,
-                dislikes: 0
-            };
-
-            const response = await fetch('/Review', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
+            const response = await fetch(
+                `https://localhost:7232/api/review/average-score/${id}?profileType=song`
+            );
+            
             if (response.ok) {
-                fetchSongData();
-                setShowReviewForm(false);
+                const data = await response.json();
+                setAverageScore(data.averageScore);
+                setTotalReviews(data.totalReviews);
             }
         } catch (error) {
-            console.error('Error submitting review:', error);
+            console.error('Error al cargar promedio:', error);
         }
     };
-    */
 
     //quitar cuando el api este funcionando (TEMPORAL!!!!!!!!!!!!!!!!)
+    //Se cancela borre el otro y este es el chido :)
      const fetchSongData = async () => {
         try {
-            // Simular una llamada a API con un delay
-            await new Promise(resolve => setTimeout(resolve, 500));
+            setLoading(true);
             
             //Buscar el token de spotify (no se si sea necesario aqui)
             const token = await getSpotifyToken();
@@ -86,70 +57,39 @@ const SongProfile = () => {
                 });
              
                 const data = await response.json();
-                if(data){
+                if(data && !data.error){
                     const cancionSpotify={
                         id: data.id,
                         name: data.name,
                         imageUrl: data.album.images[0]?.url,
-                        score: 5,
+                        score: 0,
                         publicationDate: data.album.release_date,
                         generes:[],
                         tags:[],
                         artists: data.artists,
                         album: data.album,
-                        reviews:[]
+                        description: `Canción del álbum ${data.album.name} lanzado el ${new Date(data.album.release_date).toLocaleDateString('es-ES')}`
                     };
 
                     setSong(cancionSpotify);
-                    setReviews([]);
-                    setLoading(false);
-                    return;
+                } else {
+                    console.error('Error al obtener datos de Spotify:', data.error);
                 }
             }
             
-            // Buscar la cancion en los datos mock
-            //const foundSong = mockSongs.find(s => s.id === id);
-            
-           // if (foundSong) {
-           //     setSong(foundSong);
-           //     setReviews(foundSong.reviews || []);
-           // }
-            
-        //    setLoading(false);
+            setLoading(false);
         } catch (error) {
             console.error('Error fetching song data:', error);
             setLoading(false);
         }
     };
-    const handleSubmitReview = async (reviewData) => {
-        try {
-            // Simular guardado de review
-            const newReview = {
-                id: reviews.length + 1,
-                userId: 1,
-                author: "Pepito43",
-                description: reviewData.description,
-                score: reviewData.score,
-                publicationDate: new Date().toISOString(),
-                likes: 0,
-                dislikes: 0
-            };
-
-            // Agregar la nueva review al estado
-            setReviews([newReview, ...reviews]);
-            setShowReviewForm(false);
-
-            // Recalcular el score promedio
-            const allReviews = [newReview, ...reviews];
-            const avgScore = Math.round(
-                allReviews.reduce((sum, r) => sum + r.score, 0) / allReviews.length
-            );
-            setSong({ ...song, score: avgScore });
-
-            console.log('Review creada:', newReview);
-        } catch (error) {
-            console.error('Error submitting review:', error);
-        }
+    const handleSubmitReview = async (savedReview) => {
+        console.log('Review guardada exitosamente:', savedReview);
+        setShowReviewForm(false);
+        //Volver a calcular el promedio
+        await fetchAverageScore();
+        // Forzar recarga de las reviews
+        window.location.reload();
     };
 
     //HASTA AQUI, esto ya si es parte de mi chamba
@@ -199,7 +139,8 @@ const SongProfile = () => {
                 imageUrl={song.imageUrl}
                 title={song.name}
                 metadata={metadata}
-                score={song.score}
+                score={averageScore}
+                totalReviews={totalReviews}
                 genres={song.genres || []}
                 tags={song.tags || []}
                 description={song.description}
@@ -221,10 +162,15 @@ const SongProfile = () => {
                 <ReviewForm 
                     onSubmit={handleSubmitReview}
                     onCancel={() => setShowReviewForm(false)}
+                    profileId={id}
+                    profileType="song"
                 />
             )}
 
-            <ReviewsList reviews={reviews} />
+            <ReviewsList 
+                profileId={id}
+                profileType="song"
+            />
         </div>
     );
 }

@@ -13,8 +13,8 @@ using SoundTrack.Server.Data;
 namespace SoundTrack.Server.Migrations
 {
     [DbContext(typeof(SoundTrackContext))]
-    [Migration("20251031001819_firstCreation")]
-    partial class firstCreation
+    [Migration("20251117041651_AddReviewLikesTable")]
+    partial class AddReviewLikesTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -224,6 +224,38 @@ namespace SoundTrack.Server.Migrations
                     b.ToTable("ReviewComments");
                 });
 
+            modelBuilder.Entity("SoundTrack.Server.Models.ReviewLike", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("LikeType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ReviewId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReviewId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ReviewLikes");
+                });
+
             modelBuilder.Entity("SoundTrack.Server.Models.SongProfile", b =>
                 {
                     b.Property<string>("Id")
@@ -390,6 +422,25 @@ namespace SoundTrack.Server.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SoundTrack.Server.Models.ReviewLike", b =>
+                {
+                    b.HasOne("SoundTrack.Server.Models.Review", "Review")
+                        .WithMany("ReviewLikes")
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SoundTrack.Server.Models.User", "User")
+                        .WithMany("ReviewLikes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Review");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("SoundTrack.Server.Models.SongProfile", b =>
                 {
                     b.HasOne("SoundTrack.Server.Models.AlbumProfile", "Album")
@@ -432,6 +483,11 @@ namespace SoundTrack.Server.Migrations
                     b.Navigation("reviews");
                 });
 
+            modelBuilder.Entity("SoundTrack.Server.Models.Review", b =>
+                {
+                    b.Navigation("ReviewLikes");
+                });
+
             modelBuilder.Entity("SoundTrack.Server.Models.SongProfile", b =>
                 {
                     b.Navigation("reviews");
@@ -439,6 +495,8 @@ namespace SoundTrack.Server.Migrations
 
             modelBuilder.Entity("SoundTrack.Server.Models.User", b =>
                 {
+                    b.Navigation("ReviewLikes");
+
                     b.Navigation("Reviews");
 
                     b.Navigation("TrendingAlbums");

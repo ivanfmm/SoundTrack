@@ -13,6 +13,7 @@ namespace SoundTrack.Server.Data
         public DbSet<Models.SongProfile> SongProfiles { get; set; }
         public DbSet<Models.Review> Reviews { get; set; }
         public DbSet<Models.ReviewComment> ReviewComments { get; set; }
+        public DbSet<Models.ReviewLike> ReviewLikes { get; set; }
 
         public SoundTrackContext(DbContextOptions<SoundTrackContext> options) : base(options)
         {

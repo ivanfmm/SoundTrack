@@ -14,7 +14,6 @@ const ArtistProfile = () => {
     const [artist, setArtist] = useState(null);
     const [topTracks, setTopTracks] = useState([]);
     const [albums, setAlbums] = useState([]);
-    const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showReviewForm, setShowReviewForm] = useState(false);
 
@@ -78,33 +77,12 @@ const ArtistProfile = () => {
         }
     };
 
-    const handleSubmitReview = async (reviewData) => {
-        try {
-            const newReview = {
-                id: reviews.length + 1,
-                userId: 1,
-                author: "Pepito43",
-                description: reviewData.description,
-                score: reviewData.score,
-                publicationDate: new Date().toISOString(),
-                likes: 0,
-                dislikes: 0
-            };
-
-            setReviews([newReview, ...reviews]);
-            setShowReviewForm(false);
-
-            // Recalcular score promedio
-            const allReviews = [newReview, ...reviews];
-            const avgScore = Math.round(
-                allReviews.reduce((sum, r) => sum + r.score, 0) / allReviews.length
-            );
-            setArtist({ ...artist, score: avgScore });
-
-            console.log('Review creada:', newReview);
-        } catch (error) {
-            console.error('Error submitting review:', error);
-        }
+    //copy paste del de caciones
+    const handleSubmitReview = async (savedReview) => {
+        console.log('Review guardada exitosamente:', savedReview);
+        setShowReviewForm(false);
+        // Forzar recarga de las reviews
+        window.location.reload();
     };
 
     if (loading) {
@@ -203,10 +181,15 @@ const ArtistProfile = () => {
                 <ReviewForm 
                     onSubmit={handleSubmitReview}
                     onCancel={() => setShowReviewForm(false)}
+                    profileId={id}
+                    profileType="artist"
                 />
             )}
 
-            <ReviewsList reviews={reviews} />
+            <ReviewsList 
+                profileId={id}
+                profileType="artist"
+            />
         </div>
     );
 };
