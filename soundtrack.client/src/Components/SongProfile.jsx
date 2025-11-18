@@ -12,6 +12,8 @@ const SongProfile = () => {
     const [song, setSong] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showReviewForm, setShowReviewForm] = useState(false);
+    const [averageScore, setAverageScore] = useState(null);
+    const [totalReviews, setTotalReviews] = useState(0);
 
 
     {
@@ -19,7 +21,24 @@ const SongProfile = () => {
     }
     useEffect(() => {
         fetchSongData();
+        fetchAverageScore();
     }, [id]);
+
+    const fetchAverageScore = async () => {
+        try {
+            const response = await fetch(
+                `https://localhost:7232/api/review/average-score/${id}?profileType=song`
+            );
+            
+            if (response.ok) {
+                const data = await response.json();
+                setAverageScore(data.averageScore);
+                setTotalReviews(data.totalReviews);
+            }
+        } catch (error) {
+            console.error('Error al cargar promedio:', error);
+        }
+    };
 
     //quitar cuando el api este funcionando (TEMPORAL!!!!!!!!!!!!!!!!)
     //Se cancela borre el otro y este es el chido :)
@@ -43,7 +62,7 @@ const SongProfile = () => {
                         id: data.id,
                         name: data.name,
                         imageUrl: data.album.images[0]?.url,
-                        score: 5,
+                        score: 0,
                         publicationDate: data.album.release_date,
                         generes:[],
                         tags:[],
@@ -67,6 +86,8 @@ const SongProfile = () => {
     const handleSubmitReview = async (savedReview) => {
         console.log('Review guardada exitosamente:', savedReview);
         setShowReviewForm(false);
+        //Volver a calcular el promedio
+        await fetchAverageScore();
         // Forzar recarga de las reviews
         window.location.reload();
     };
@@ -118,7 +139,8 @@ const SongProfile = () => {
                 imageUrl={song.imageUrl}
                 title={song.name}
                 metadata={metadata}
-                score={song.score}
+                score={averageScore}
+                totalReviews={totalReviews}
                 genres={song.genres || []}
                 tags={song.tags || []}
                 description={song.description}

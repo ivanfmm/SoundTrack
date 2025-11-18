@@ -18,6 +18,8 @@
         public List<ArtistProfile> TrendingArtists { get; set; }
         public List<AlbumProfile> TrendingAlbums { get; set; }
 
+        public List<ReviewLike> ReviewLikes { get; set; } = new List<ReviewLike>();
+
         public void FollowUser(User userToFollow)
         {
             if (Following == null)

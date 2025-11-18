@@ -11,6 +11,9 @@ namespace SoundTrack.Server.Services
         public void AddUser(User user);
         public void UpdateUser(User user);
         public void DeleteUser(User user);
+        //Profile 
+        Task<double?> GetAverageScore(string profileId, string profileType);
+        Task<int> GetReviewCountByProfile(string profileId, string profileType);
 
         //ArtistProfile
         public Task<List<ArtistProfile>> GetAllArtistProfile();
@@ -40,12 +43,13 @@ namespace SoundTrack.Server.Services
         //Reviews
         public Task<List<Review>> GetAllReviews();
         public Task<Review?> GetReviewById(int id);
-        //public void addReview(Review review);
         public void addReview(Review review);
-        //public async Task addReview(Review review);
 
         public void updateReview(Review review);
         public void deleteReview(Review review);
+        public Task<(Review? review, LikeType newStatus)> ToggleLike(int reviewId, int userId);
+        public Task<(Review? review, LikeType newStatus)> ToggleDislike(int reviewId, int userId);
+        public Task<LikeType> GetUserLikeStatus(int reviewId, int userId);
 
         //ReviewComments
         public Task<List<ReviewComment>> GetAllReviewComments();

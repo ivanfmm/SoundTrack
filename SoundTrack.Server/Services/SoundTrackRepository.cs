@@ -43,6 +43,54 @@ namespace SoundTrack.Server.Services
             _context.SaveChanges();
         }
 
+        //Profile (basicamente el promedio de las estrellas)
+        public async Task<double?> GetAverageScore(string profileId, string profileType)
+        {
+            List<Review> reviews;
+
+            switch (profileType.ToLower())
+            {
+                case "song":
+                    reviews = await _context.Reviews
+                        .Where(r => r.SongProfileId == profileId)
+                        .ToListAsync();
+                    break;
+                case "artist":
+                    reviews = await _context.Reviews
+                        .Where(r => r.ArtistProfileId == profileId)
+                        .ToListAsync();
+                    break;
+                case "album":
+                    reviews = await _context.Reviews
+                        .Where(r => r.AlbumProfileId == profileId)
+                        .ToListAsync();
+                    break;
+                default:
+                    return null;
+            }
+
+            if (reviews.Count == 0)
+                return null;
+
+            return reviews.Average(r => (int)r.score);
+        }
+
+        //contar para hacer el promedio
+        public async Task<int> GetReviewCountByProfile(string profileId, string profileType)
+        {
+            switch (profileType.ToLower())
+            {
+                case "song":
+                    return await _context.Reviews.CountAsync(r => r.SongProfileId == profileId);
+                case "artist":
+                    return await _context.Reviews.CountAsync(r => r.ArtistProfileId == profileId);
+                case "album":
+                    return await _context.Reviews.CountAsync(r => r.AlbumProfileId == profileId);
+                default:
+                    return 0;
+            }
+        }
+
         //ArtistProfile
         public async Task<List<ArtistProfile>> GetAllArtistProfile()
         {
@@ -169,6 +217,127 @@ namespace SoundTrack.Server.Services
             _context.SaveChanges();
         }
 
+        public async Task<(Review? review, LikeType newStatus)> ToggleLike(int reviewId, int userId)
+        {
+            var review = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.Id == reviewId);
+
+            if (review == null) return (null, LikeType.None);
+
+            var existingLike = await _context.ReviewLikes
+                .FirstOrDefaultAsync(rl => rl.ReviewId == reviewId && rl.UserId == userId);
+
+            LikeType finalStatus;
+
+
+            if (existingLike != null)
+            {
+                if (existingLike.LikeType == LikeType.Like)
+                {
+                    // Si ya tenia like lo quita
+                    review.Likes--;
+                    _context.ReviewLikes.Remove(existingLike);
+                    finalStatus = LikeType.None;
+                }
+                else
+                {
+                    // tenia dislike lo cambia a like
+                    if (existingLike.LikeType == LikeType.Dislike) 
+                    {
+                        review.Dislikes--;
+                    }
+                    review.Likes++;
+                    existingLike.LikeType = LikeType.Like;
+                    existingLike.UpdatedAt = DateTime.UtcNow;
+                    _context.ReviewLikes.Update(existingLike);
+                    finalStatus = LikeType.Like;
+                }
+            }
+            else
+            {
+                // si no existe le da like
+                review.Likes++;
+                var newLike = new ReviewLike
+                {
+                    ReviewId = reviewId,
+                    UserId = userId,
+                    LikeType = LikeType.Like,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.ReviewLikes.Add(newLike);
+                finalStatus = LikeType.Like;
+            }
+
+            await _context.SaveChangesAsync();
+            return (review, finalStatus);
+        }
+
+        //Para dislike copy y paste pero cambiando el like por dislike
+        public async Task<(Review? review, LikeType newStatus)> ToggleDislike(int reviewId, int userId)
+        {
+            var review = await _context.Reviews
+                .FirstOrDefaultAsync(r => r.Id == reviewId);
+
+            if (review == null) return (null, LikeType.None);
+
+            var existingDislike = await _context.ReviewLikes
+                .FirstOrDefaultAsync(rl => rl.ReviewId == reviewId && rl.UserId == userId);
+
+            LikeType finalStatus;
+
+            if (existingDislike != null)
+            {
+                if (existingDislike.LikeType == LikeType.Dislike)
+                {
+                    // Si ya tenia dislike lo quita
+                    review.Dislikes--;
+                    _context.ReviewLikes.Remove(existingDislike);
+                    finalStatus= LikeType.None;
+                }
+                else 
+                {
+                    // los mismo que el otro pero con dislike
+                    if (existingDislike.LikeType == LikeType.Like)
+                    {
+                        review.Likes--;
+                    }
+                    review.Dislikes++;
+                    existingDislike.LikeType = LikeType.Dislike;
+                    existingDislike.UpdatedAt = DateTime.UtcNow;
+                    _context.ReviewLikes.Update(existingDislike);
+                    finalStatus = LikeType.Dislike;
+                }
+            }
+            else
+            {
+                // si no existe le da like
+                review.Dislikes++;
+                var newDislike = new ReviewLike
+                {
+                    ReviewId = reviewId,
+                    UserId = userId,
+                    LikeType = LikeType.Dislike,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.ReviewLikes.Add(newDislike);
+                finalStatus = LikeType.Dislike;
+            }
+
+            await _context.SaveChangesAsync();
+            return (review,finalStatus);
+        }
+
+        //Saber que tiene (like, dislike o nada)
+        public async Task<LikeType> GetUserLikeStatus(int reviewId, int userId)
+        {
+            var reviewLike = await _context.ReviewLikes
+                .FirstOrDefaultAsync(rl => rl.ReviewId == reviewId && rl.UserId == userId);
+
+            return reviewLike?.LikeType ?? LikeType.None;
+        }
+
         //ReviewComments
         public async Task<List<ReviewComment>> GetAllReviewComments()
         {
@@ -194,7 +363,7 @@ namespace SoundTrack.Server.Services
             _context.SaveChanges();
         }
 
-
+       
 
     }
 }

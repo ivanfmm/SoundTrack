@@ -6,6 +6,9 @@ const ReviewsList = ({ profileId, profileType }) => {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [userLikeStatuses, setUserLikeStatuses] = useState({});
+
+    const CURRENT_USER_ID = 1; //userId hardcodeado para los likes
 
     useEffect(() => {
         if (profileId && profileType) {
@@ -38,6 +41,9 @@ const ReviewsList = ({ profileId, profileType }) => {
             }
             
             setReviews(filteredReviews);
+            
+            await fetchLikeStatuses(filteredReviews);
+
         } catch (error) {
             console.error('Error al cargar reviews:', error);
             setError('No se pudieron cargar las reviews. Verifica que el servidor esté corriendo.');
@@ -45,15 +51,53 @@ const ReviewsList = ({ profileId, profileType }) => {
             setLoading(false);
         }
     };
-
-    // Likes
-    const handleLike = async (reviewId) => {
-        console.log('Like review:', reviewId);
+    
+    const fetchLikeStatuses = async (reviewsList) => {
+        const statuses = {};
+        
+        for (const review of reviewsList) {
+            const response = await fetch(
+                `https://localhost:7232/api/review/${review.id}/like-status/${CURRENT_USER_ID}`
+            );
+            
+            if (response.ok) {
+                const data = await response.json();
+                statuses[review.id] = data.likeStatus;
+            }
+        }
+        
+        setUserLikeStatuses(statuses);
     };
 
-    //Dislike
-    const handleDislike = async (reviewId) => {
-        console.log('Dislike review:', reviewId);
+    const handleToggleLike = async (reviewId, action) => {
+        try {
+            const response = await fetch(`https://localhost:7232/api/review/${reviewId}/${action}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: CURRENT_USER_ID
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setReviews(reviews.map(review => 
+                    review.id === reviewId ? data.review : review
+                ));
+
+                setUserLikeStatuses(prevStatuses => ({
+                    ...prevStatuses,
+                    [reviewId]: data.userLikeStatus
+                }));
+
+            } else {
+                console.error(`Error al dar ${action}`);
+            }
+        } catch (error) {
+            console.error(`Error al dar ${action}:`, error);
+        }
     };
 
     if (loading) return <p>Cargando reviews...</p>;
@@ -92,45 +136,51 @@ const ReviewsList = ({ profileId, profileType }) => {
             <h2>Reviews ({reviews.length})</h2>
 
             <div className="reviews-list">
-                {reviews.map((review) => (
-                    <div key={review.id} className="review-card">
-                        <div className="review-header">
-                            <div className="review-author">
-                                <img
-                                    src="/user_p.png"
-                                    alt={review.author}
-                                    className="author-avatar"
-                                />
-                                <span className="author-name">{review.author}</span>
+                {reviews.map((review) => {
+                    const userStatus = userLikeStatuses[review.id] || 'None';
+                    const hasLiked = userStatus === 'Like';
+                    const hasDisliked = userStatus === 'Dislike';
+                    
+                    return (
+                        <div key={review.id} className="review-card">
+                            <div className="review-header">
+                                <div className="review-author">
+                                    <img
+                                        src="/user_p.png"
+                                        alt={review.author}
+                                        className="author-avatar"
+                                    />
+                                    <span className="author-name">{review.author}</span>
+                                </div>
+                                <div className="review-rating">
+                                    <StarRating score={review.score} size="medium" />
+                                </div>
                             </div>
-                            <div className="review-rating">
-                                <StarRating score={review.score} size="medium" />
+
+                            <p className="review-text">{review.description}</p>
+
+                            <div className="review-footer">
+                                <span className="review-date">
+                                    {new Date(review.publicationDate).toLocaleDateString('es-ES')}
+                                </span>
+                                <div className="review-actions-buttons">
+                                    <button 
+                                        className={`like-btn ${hasLiked ? 'active' : ''}`}
+                                        onClick={() => handleToggleLike(review.id, 'like')}
+                                    >
+                                        ❤️ {review.likes}
+                                    </button>
+                                    <button 
+                                        className={`dislike-btn ${hasDisliked ? 'active' : ''}`}
+                                        onClick={() => handleToggleLike(review.id,'dislike')}
+                                    >
+                                        👎 {review.dislikes}
+                                    </button>
+                                </div>
                             </div>
                         </div>
-
-                        <p className="review-text">{review.description}</p>
-
-                        <div className="review-footer">
-                            <span className="review-date">
-                                {new Date(review.publicationDate).toLocaleDateString('es-ES')}
-                            </span>
-                            <div className="review-actions-buttons">
-                                <button 
-                                    className="like-btn"
-                                    onClick={() => handleLike(review.id)}
-                                >
-                                    ❤️ {review.likes}
-                                </button>
-                                <button 
-                                    className="dislike-btn"
-                                    onClick={() => handleDislike(review.id)}
-                                >
-                                    👎 {review.dislikes}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

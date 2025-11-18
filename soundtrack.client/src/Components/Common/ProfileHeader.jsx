@@ -8,6 +8,7 @@ const ProfileHeader = ({
     subtitle,
     metadata = [], // el artista, album y fecha de publicacion
     score, 
+    totalReviews = 0,
     genres = [],
     tags = [],
     description,
@@ -42,10 +43,25 @@ const ProfileHeader = ({
                 )}
 
                 {/* Rating */}
-                {score && (
+                {score !== null && score !== undefined ? (
                     <div className="profile-rating">
-                        <StarRating score={score} size="large" showScore />
+                        <span className="tags-label">Score:</span>
+                        <div className="rating-display">
+                            <StarRating score={Math.round(score)} size="large" />
+                            <div className="rating-info">
+                                <span className="rating-number">{score.toFixed(1)}</span>
+                                <span className="rating-total">/ 5.0</span>
+                            </div>
+                        </div>
                     </div>
+                ) : (
+                    totalReviews === 0 && (
+                        <div className="profile-rating no-rating">
+                            <p className="no-rating-text">
+                                ⭐ Aún no hay calificaciones. ¡Sé el primero en escribir una review!
+                            </p>
+                        </div>
+                    )
                 )}
 
                 {/* Generos (no se como venia en el api asi que lo meti con arreglo y el genero en si) */}
