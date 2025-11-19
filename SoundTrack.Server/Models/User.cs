@@ -4,12 +4,11 @@
     {
         public int Id { get; set; }
         public string Username { get; set; }
-        public string Bio { get; set; }
+        public string? Bio { get; set; }
         public string Email { get; set; }
-        public string PasswordHash { get; set; }
-        public string salt { get; set; }
-        public string ProfilePictureUrl { get; set; }
-        public DateTime BirthDay { get; set; }
+        public string? IdentityUserId { get; set; }
+        public string? ProfilePictureUrl { get; set; }
+        public DateTime? BirthDay { get; set; }
         public DateTime CreateDate { get; set; }
 
         public List<User> Followers { get; set; }
