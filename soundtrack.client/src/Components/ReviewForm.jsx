@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
+import { useAuth } from './AuthContext';
 import InteractiveStars from './Common/InteractiveStars';
 import './ReviewForm.css';
 
 const ReviewForm = ({ onSubmit, onCancel, profileId, profileType }) => {
+    const { user, isAuthenticated } = useAuth();
     const [review, setReview] = useState({
         score: 5,
         description: ''
@@ -10,16 +12,37 @@ const ReviewForm = ({ onSubmit, onCancel, profileId, profileType }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    // Si el usuario no está logeado, mostrar mensaje
+    if (!isAuthenticated) {
+        return (
+            <div className="review-form-container">
+                <h3>Escribe tu review</h3>
+                <div className="auth-required-message">
+                    <p> Debes iniciar sesión para escribir una review</p>
+                    <button
+                        className="btn-submit-review"
+                        onClick={() => {
+                            // Podrías emitir un evento o mostrar el modal de login
+                            alert('Por favor inicia sesión primero');
+                        }}
+                    >
+                        Iniciar Sesión
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
 
         try {
-            // Perfil del usuario
+            // Usar los datos REALES del usuario autenticado
             const reviewData = {
-                author: "Pepito43",
-                userId: 1,
+                author: user.username,      //  Usuario real del Context
+                userId: user.userId,        //  ID real del Context
                 description: review.description,
                 score: review.score,
                 publicationDate: new Date().toISOString(),
@@ -27,7 +50,7 @@ const ReviewForm = ({ onSubmit, onCancel, profileId, profileType }) => {
                 dislikes: 0
             };
 
-            // Agregar el ID dependiendo si es cancion, artista o album
+            // Agregar el ID dependiendo si es canción, artista o álbum
             if (profileType === 'song') {
                 reviewData.songProfileId = profileId;
             } else if (profileType === 'artist') {
@@ -43,6 +66,7 @@ const ReviewForm = ({ onSubmit, onCancel, profileId, profileType }) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include', //  IMPORTANTE: enviar cookies de sesión
                 body: JSON.stringify(reviewData)
             });
 
@@ -58,7 +82,7 @@ const ReviewForm = ({ onSubmit, onCancel, profileId, profileType }) => {
             }
         } catch (error) {
             console.error('Error:', error);
-            setError('Error de conexion con el servidor');
+            setError('Error de conexión con el servidor');
         } finally {
             setLoading(false);
         }
@@ -67,6 +91,11 @@ const ReviewForm = ({ onSubmit, onCancel, profileId, profileType }) => {
     return (
         <div className="review-form-container">
             <h3>Escribe tu review</h3>
+            <p className="review-author-info">
+                Como: <strong style={{ color: 'var(--color-neon-green)' }}>
+                    {user.username}
+                </strong>
+            </p>
 
             {error && (
                 <div style={{
@@ -83,7 +112,7 @@ const ReviewForm = ({ onSubmit, onCancel, profileId, profileType }) => {
 
             <form onSubmit={handleSubmit} className="review-form">
                 <div className="form-group">
-                    <label>Tu calificacion:</label>
+                    <label>Tu calificación:</label>
                     <InteractiveStars
                         score={review.score}
                         onChange={(score) => setReview({ ...review, score })}
@@ -91,12 +120,12 @@ const ReviewForm = ({ onSubmit, onCancel, profileId, profileType }) => {
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="review-text">Tu opinion:</label>
+                    <label htmlFor="review-text">Tu opinión:</label>
                     <textarea
                         id="review-text"
                         value={review.description}
                         onChange={(e) => setReview({ ...review, description: e.target.value })}
-                        placeholder="Que te parecio?"
+                        placeholder="¿Qué te pareció?"
                         rows="5"
                         required
                     />
