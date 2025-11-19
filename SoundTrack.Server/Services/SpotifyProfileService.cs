@@ -15,11 +15,18 @@ namespace SoundTrack.Server.Services
         Task<SongProfile> EnsureSongProfileExists(string spotifyId);
         Task<ArtistProfile> EnsureArtistProfileExists(string spotifyId);
         Task<AlbumProfile> EnsureAlbumProfileExists(string spotifyId);
-    }
+
+		Task<string> GetAccessTokenAsync(); //Para poder pasar access token al front end
+	}
 
     public class SpotifyProfileService : ISpotifyProfileService
     {
-        private readonly SoundTrackContext _context;
+        public async Task<string> GetAccessTokenAsync() //Para poder pasar access token al front end.
+		{
+			return await GetSpotifyToken();
+		}
+
+		private readonly SoundTrackContext _context;
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _httpClientFactory;
 

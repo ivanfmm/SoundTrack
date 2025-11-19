@@ -1,23 +1,21 @@
-const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-const CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
 
+//Para pedir el token de Spotify al backend
 export const getSpotifyToken = async () => {
-    
-    
-    const response = await fetch('https://accounts.spotify.com/api/token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': 'Basic ' + btoa(CLIENT_ID + ':' + CLIENT_SECRET)
-        },
-        body: 'grant_type=client_credentials'
-    });
-    
-    const data = await response.json();
-    
-    
-    return data.access_token;
+    try {
+        
+        const response = await fetch('/api/Spotify/token'); 
+
+        if (!response.ok) throw new Error('Error del servidor');
+
+        const data = await response.json();
+        return data.access_token;
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
 };
+
+
 
 export const getTopTracks = async () => {
     const token = await getSpotifyToken();

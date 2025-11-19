@@ -5,6 +5,8 @@ using SoundTrack.Server.Data;
 using SoundTrack.Server.Services;
 using System.Configuration;
 
+
+
 namespace SoundTrack.Server
 {
     public class Program
@@ -32,7 +34,7 @@ namespace SoundTrack.Server
             var databaseConfig = builder.Configuration.GetSection("ConnectionStrings").Get<DatabaseConfig>();
             Console.WriteLine($"la conexion es: {databaseConfig.SupabaseConnection}, se logr");
 
-            // ⭐ AGREGAR ESTAS LÍNEAS PARA DEBUG
+            
             var spotifyClientId = builder.Configuration["Spotify:ClientId"];
             var spotifyClientSecret = builder.Configuration["Spotify:ClientSecret"];
             Console.WriteLine($"Spotify ClientId: {spotifyClientId ?? "NULL"}");
