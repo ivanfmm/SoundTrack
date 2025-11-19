@@ -3,7 +3,8 @@ import { Outlet, Link } from 'react-router-dom';
 import './Layout.css';
 import { useNavigate } from 'react-router-dom';
 
-
+const currentUserId = 1; 
+const username = "Pepito43"; 
 
 const Layout = () => {
     //Para poder usar navbar
@@ -51,13 +52,13 @@ const Layout = () => {
                     // Perfil right, trate de poner imagen arriba y nombre abajo pero no pude XD 
                     }
                     <div className="navbar-right">
-                        <Link to="/" className="profile-link">
+                        <Link to={`/profile/${currentUserId}`} className="profile-link">
                             <img
                                 src="/user_p.png"
-                                alt="PUser Profile"
+                                alt={`${username} Profile`}
                                 className="profile-image"
                             />
-                            <span className="profile-name">Pepito43</span>
+                            <span className="profile-name">{username}</span>
                         </Link>
                     </div>
                 </nav>

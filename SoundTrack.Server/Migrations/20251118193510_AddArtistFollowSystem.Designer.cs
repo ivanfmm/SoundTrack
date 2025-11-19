@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SoundTrack.Server.Data;
@@ -12,9 +13,11 @@ using SoundTrack.Server.Data;
 namespace SoundTrack.Server.Migrations
 {
     [DbContext(typeof(SoundTrackContext))]
-    partial class SoundTrackContextModelSnapshot : ModelSnapshot
+    [Migration("20251118193510_AddArtistFollowSystem")]
+    partial class AddArtistFollowSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -340,10 +343,6 @@ namespace SoundTrack.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Bio")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("BirthDay")
                         .HasColumnType("timestamp with time zone");
 
@@ -351,18 +350,6 @@ namespace SoundTrack.Server.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("FavoriteAlbumIds")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("FavoriteArtistIds")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("FavoriteSongIds")
                         .IsRequired()
                         .HasColumnType("text");
 
