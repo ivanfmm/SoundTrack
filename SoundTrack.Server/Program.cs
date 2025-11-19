@@ -11,6 +11,7 @@ namespace SoundTrack.Server
     {
         public static void Main(string[] args)
         {
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             var builder = WebApplication.CreateBuilder(args);
 
             var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
