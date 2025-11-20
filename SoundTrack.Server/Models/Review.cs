@@ -1,40 +1,57 @@
-﻿namespace SoundTrack.Server.Models
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace SoundTrack.Server.Models
 {
     public class Review
     {
         public int Id { get; set; }
 
         // Foreign Key para User (Identity usa string)
+        [Required]
         public string UserId { get; set; }
 
         // Propiedad de navegación hacia User
+        [ValidateNever]
         public User User { get; set; }
 
-        // Foreign Keys para los perfiles (pueden ser nullables si no siempre se asocian)
+        // Foreign Keys para los perfiles (nullables)
         public string? ArtistProfileId { get; set; }
+        [ValidateNever]
         public ArtistProfile? ArtistProfile { get; set; }
 
         public string? AlbumProfileId { get; set; }
+        [ValidateNever]
         public AlbumProfile? AlbumProfile { get; set; }
 
         public string? SongProfileId { get; set; }
+        [ValidateNever]
         public SongProfile? SongProfile { get; set; }
 
         // Contenido de la review
+        [Required]
         public string Title { get; set; }
+
+        [Required]
         public string Content { get; set; }
-        public ReviewScore score { get; set; }  // Enum para las estrellas
+
+        [Required]
+        public ReviewScore score { get; set; }
 
         // Contadores de likes/dislikes
-        public int Likes { get; set; }
-        public int Dislikes { get; set; }
+        public int Likes { get; set; } = 0;
+        public int Dislikes { get; set; } = 0;
 
         // Fechas
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 
         // Colecciones de navegación
+        [ValidateNever]
         public List<ReviewComment> Comments { get; set; } = new List<ReviewComment>();
+
+        [ValidateNever]
         public List<ReviewLike> ReviewLikes { get; set; } = new List<ReviewLike>();
     }
 

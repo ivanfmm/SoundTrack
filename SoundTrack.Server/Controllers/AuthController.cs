@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SoundTrack.Server.Data;
 using SoundTrack.Server.Models;
 
@@ -10,7 +11,6 @@ namespace SoundTrack.Server.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        // Cambiar de IdentityUser a User
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly SoundTrackContext _context;
@@ -33,7 +33,6 @@ namespace SoundTrack.Server.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Ahora solo creas UN usuario (User ya ES un IdentityUser)
             var user = new User
             {
                 UserName = model.Username,
@@ -64,7 +63,11 @@ namespace SoundTrack.Server.Controllers
             {
                 message = "User registered successfully",
                 userId = user.Id,
-                username = user.UserName
+                username = user.UserName,
+                email = user.Email,
+                profilePictureUrl = user.ProfilePictureUrl,
+                birthDay = user.BirthDay,
+                bio = user.Bio
             });
         }
 
@@ -90,7 +93,11 @@ namespace SoundTrack.Server.Controllers
                 {
                     message = "Login successful",
                     userId = user.Id,
-                    username = user.UserName
+                    username = user.UserName,
+                    email = user.Email,
+                    profilePictureUrl = user.ProfilePictureUrl,
+                    birthDay = user.BirthDay,
+                    bio = user.Bio
                 });
             }
 
@@ -103,7 +110,6 @@ namespace SoundTrack.Server.Controllers
         }
 
         [HttpPost("logout")]
-        [Authorize]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
@@ -111,23 +117,21 @@ namespace SoundTrack.Server.Controllers
         }
 
         [HttpGet("current")]
-        [Authorize]
         public async Task<IActionResult> GetCurrentUser()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            // Verificar si el usuario está autenticado
+            if (!User.Identity.IsAuthenticated)
             {
                 return Unauthorized(new { message = "User not authenticated" });
             }
 
-            // Cargar las relaciones si es necesario
-            await _context.Entry(user)
-                .Collection(u => u.Followers)
-                .LoadAsync();
-            await _context.Entry(user)
-                .Collection(u => u.Following)
-                .LoadAsync();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "User not found" });
+            }
 
+            // ⭐ SIMPLIFICADO: Solo devolver info básica sin contar followers
             return Ok(new
             {
                 userId = user.Id,
@@ -136,8 +140,8 @@ namespace SoundTrack.Server.Controllers
                 profilePictureUrl = user.ProfilePictureUrl,
                 birthDay = user.BirthDay,
                 bio = user.Bio,
-                followersCount = user.Followers?.Count ?? 0,
-                followingCount = user.Following?.Count ?? 0
+                followersCount = 0,
+                followingCount = 0
             });
         }
     }

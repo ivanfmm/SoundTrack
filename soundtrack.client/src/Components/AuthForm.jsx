@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useAuth } from './AuthContext';
 import './AuthForm.css';
 
 const AuthForm = ({ onSuccess, onCancel }) => {
+    const { login, register, checkAuthStatus } = useAuth(); // Importar funciones del contexto
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({
         username: '',
@@ -35,42 +37,30 @@ const AuthForm = ({ onSuccess, onCancel }) => {
         }
 
         try {
-            const endpoint = isLogin ? 'login' : 'register';
-            const payload = isLogin
-                ? {
-                    username: formData.username,
-                    password: formData.password,
-                    rememberMe: formData.rememberMe
-                }
-                : {
-                    username: formData.username,
-                    email: formData.email,
-                    password: formData.password,
-                    birthDay: formData.birthDay || null
-                };
+            let result;
 
-            console.log('Enviando datos:', payload);
+            if (isLogin) {
+                // Usar la funcion login del contexto
+                result = await login(
+                    formData.username,
+                    formData.password,
+                    formData.rememberMe
+                );
+            } else {
+                // Usar la funcion register del contexto
+                result = await register(
+                    formData.username,
+                    formData.email,
+                    formData.password,
+                    formData.birthDay || null
+                );
+            }
 
-            const response = await fetch(`https://localhost:7232/api/auth/${endpoint}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify(payload)
-            });
+            if (result.success) {
+                console.log('Autenticacion exitosa:', result.data);
 
-            // MEJOR DEBUG: Ver el contenido completo de la respuesta
-            const responseText = await response.text();
-            console.log('Respuesta del servidor (texto):', responseText);
-
-            if (response.ok) {
-                const data = JSON.parse(responseText);
-                console.log('Respuesta exitosa:', data);
-
-                if (onSuccess) {
-                    onSuccess(data);
-                }
+                // Verificar el estado de autenticacion para asegurar actualizacion
+                await checkAuthStatus();
 
                 // Limpiar formulario
                 setFormData({
@@ -82,29 +72,18 @@ const AuthForm = ({ onSuccess, onCancel }) => {
                     rememberMe: false
                 });
 
-                alert(isLogin ? 'Sesion iniciada exitosamente!' : 'Registro exitoso! Sesion iniciada.');
-            } else {
-                // Intentar parsear el error como JSON
-                let errorData;
-                try {
-                    errorData = JSON.parse(responseText);
-                } catch {
-                    errorData = { message: responseText };
+                // Llamar callback de exito
+                if (onSuccess) {
+                    onSuccess(result.data);
                 }
 
-                console.error('Error del servidor:', errorData);
-                console.error('Status Code:', response.status);
-
-                // Mostrar el error completo
-                const errorMessage = errorData.message ||
-                    errorData.title ||
-                    JSON.stringify(errorData) ||
-                    `Error ${response.status}: ${isLogin ? 'iniciar sesion' : 'registrarse'}`;
-
-                setError(errorMessage);
+                alert(isLogin ? 'Sesion iniciada exitosamente!' : 'Registro exitoso! Sesion iniciada.');
+            } else {
+                // Mostrar error del servidor
+                setError(result.error || 'Error en la autenticacion');
             }
         } catch (error) {
-            console.error('Error de red:', error);
+            console.error('Error inesperado:', error);
             setError('Error de conexion con el servidor');
         } finally {
             setLoading(false);

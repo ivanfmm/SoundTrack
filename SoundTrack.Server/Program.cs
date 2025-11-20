@@ -24,7 +24,7 @@ namespace SoundTrack.Server
                                       policy.WithOrigins("https://localhost:49825")
                                             .AllowAnyHeader()
                                             .AllowAnyMethod()
-                                            .AllowCredentials(); // ⭐ AGREGADO: Necesario para cookies de autenticación
+                                            .AllowCredentials(); // ⭐ CRÍTICO: Permite cookies
                                   });
             });
 
@@ -39,9 +39,11 @@ namespace SoundTrack.Server
             Console.WriteLine($"Spotify ClientId: {spotifyClientId ?? "NULL"}");
             Console.WriteLine($"Spotify ClientSecret: {(string.IsNullOrEmpty(spotifyClientSecret) ? "NULL" : "***EXISTE***")}");
 
-            builder.Services.AddDbContext<SoundTrackContext>(options => options.UseNpgsql(databaseConfig.SupabaseConnection));
+            builder.Services.AddDbContext<SoundTrackContext>(options =>
+                options.UseNpgsql(databaseConfig.SupabaseConnection,
+                    o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
-            // ⭐ AGREGADO: Configuración de Identity
+            // ⭐ Configuración de Identity
             builder.Services.AddIdentity<User, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = true;
@@ -54,12 +56,17 @@ namespace SoundTrack.Server
             .AddEntityFrameworkStores<SoundTrackContext>()
             .AddDefaultTokenProviders();
 
-            // ⭐ AGREGADO: Configuración de cookies de autenticación
+            // ⭐ Configuración de cookies de autenticación
             builder.Services.ConfigureApplicationCookie(options =>
             {
+                options.Cookie.Name = "SoundTrackAuth";
                 options.Cookie.HttpOnly = true;
-                options.ExpireTimeSpan = TimeSpan.FromDays(7);
-                options.SlidingExpiration = true;
+                options.Cookie.SameSite = SameSiteMode.None; // Para CORS
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Para HTTPS
+                options.ExpireTimeSpan = TimeSpan.FromDays(30); // ⭐ AUMENTADO: 30 días
+                options.SlidingExpiration = true; // ⭐ Renueva automáticamente
+
+                // ⭐ IMPORTANTE: Evita redirecciones automáticas, devuelve códigos HTTP
                 options.Events.OnRedirectToLogin = context =>
                 {
                     context.Response.StatusCode = 401;
@@ -89,9 +96,11 @@ namespace SoundTrack.Server
             }
 
             app.UseHttpsRedirection();
+
+            // ⭐ ORDEN CRÍTICO: CORS antes de Authentication
             app.UseCors(myAllowSpecificOrigins);
 
-            // ⭐ AGREGADO: Authentication DEBE ir antes de Authorization
+            // ⭐ Authentication DEBE ir antes de Authorization
             app.UseAuthentication();
             app.UseAuthorization();
 

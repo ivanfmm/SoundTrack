@@ -13,8 +13,8 @@ namespace SoundTrack.Server.Models
         public DateTime? BirthDay { get; set; }
         public DateTime CreateDate { get; set; }
 
-        public List<UserFollow> Followers { get; set; }
-        public List<UserFollow> Following { get; set; }
+        public List<UserUser> Followers { get; set; }
+        public List<UserUser> Following { get; set; }
         public List<Review> Reviews { get; set; }
 
         public string? FavoriteArtistIds { get; set; } 
@@ -28,11 +28,11 @@ namespace SoundTrack.Server.Models
         public List<ReviewLike> ReviewLikes { get; set; } = new List<ReviewLike>();
         public List<ArtistFollow> FollowedArtists { get; set; } = new List<ArtistFollow>();
 
-        public void FollowUser(UserFollow userToFollow)
+        public void FollowUser(UserUser userToFollow)
         {
             if (Following == null)
             {
-                Following = new List<UserFollow>();
+                Following = new List<UserUser>();
             }
             if (!Following.Contains(userToFollow))
             {
@@ -40,7 +40,7 @@ namespace SoundTrack.Server.Models
             }
         }
 
-        public void UnfollowUser(UserFollow userToUnfollow)
+        public void UnfollowUser(UserUser userToUnfollow)
         {
             if (Following != null && Following.Contains(userToUnfollow))
             {
@@ -59,7 +59,7 @@ namespace SoundTrack.Server.Models
 
             if (existingFollow == null)
             {
-                var newFollow = new UserFollow
+                var newFollow = new UserUser
                 {
                     FollowerId = this.Id,
                     FollowingId = userToFollow.Id,

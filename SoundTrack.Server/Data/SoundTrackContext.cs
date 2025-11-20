@@ -15,7 +15,7 @@ namespace SoundTrack.Server.Data
         public DbSet<ReviewComment> ReviewComments { get; set; }
         public DbSet<ReviewLike> ReviewLikes { get; set; }
         public DbSet<Models.ArtistFollow> ArtistFollows { get; set; }
-        public DbSet<UserFollow> UserFollows { get; set; }
+        public DbSet<UserUser> UserFollows { get; set; }
 
 
         public SoundTrackContext(DbContextOptions<SoundTrackContext> options) : base(options)
@@ -46,8 +46,11 @@ namespace SoundTrack.Server.Data
             });
 
             // ===== CONFIGURACIÓN DE USERFOLLOWS =====
-            modelBuilder.Entity<UserFollow>(entity =>
+            modelBuilder.Entity<UserUser>(entity =>
             {
+                // ⭐ AGREGADO: Mapear a la tabla "UserUser" existente
+                entity.ToTable("UserUser");
+
                 entity.HasKey(uf => uf.Id);
                 entity.HasIndex(uf => new { uf.FollowerId, uf.FollowingId }).IsUnique();
                 entity.Property(uf => uf.FollowDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -58,31 +61,40 @@ namespace SoundTrack.Server.Data
             {
                 entity.HasKey(r => r.Id);
 
+                // Configurar propiedades
+                entity.Property(r => r.UserId).IsRequired();
+                entity.Property(r => r.Title).IsRequired();
+                entity.Property(r => r.Content).IsRequired();
+                entity.Property(r => r.Likes).HasDefaultValue(0);
+                entity.Property(r => r.Dislikes).HasDefaultValue(0);
+                entity.Property(r => r.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
                 // Relación con User
                 entity.HasOne(r => r.User)
                     .WithMany(u => u.Reviews)
                     .HasForeignKey(r => r.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                // Relación con ArtistProfile (opcional)
+                // ⭐ KEY FIX: Explicitly configure WITH the profile's reviews collection
                 entity.HasOne(r => r.ArtistProfile)
-                    .WithMany()
+                    .WithMany(a => a.reviews)  // <-- Use the collection from ArtistProfile
                     .HasForeignKey(r => r.ArtistProfileId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
 
-                // Relación con AlbumProfile (opcional)
                 entity.HasOne(r => r.AlbumProfile)
-                    .WithMany()
+                    .WithMany(a => a.reviews)  // <-- Use the collection from AlbumProfile
                     .HasForeignKey(r => r.AlbumProfileId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
 
-                // Relación con SongProfile (opcional)
                 entity.HasOne(r => r.SongProfile)
-                    .WithMany()
+                    .WithMany(s => s.reviews)  // <-- Use the collection from SongProfile
                     .HasForeignKey(r => r.SongProfileId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
 
-                // Índices para búsquedas rápidas
+                // Índices
                 entity.HasIndex(r => r.UserId);
                 entity.HasIndex(r => r.ArtistProfileId);
                 entity.HasIndex(r => r.AlbumProfileId);

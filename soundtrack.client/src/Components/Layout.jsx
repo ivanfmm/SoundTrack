@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import AuthForm from './AuthForm';
@@ -6,9 +6,14 @@ import './Layout.css';
 
 const Layout = () => {
     const navigate = useNavigate();
-    const { user, isAuthenticated, logout, loading } = useAuth();
+    const { user, isAuthenticated, logout, loading, checkAuthStatus } = useAuth();
     const [searchQuery, setSearchQuery] = useState("");
     const [showAuthModal, setShowAuthModal] = useState(false);
+
+    // Efecto para forzar actualizacion cuando cambia el estado de autenticacion
+    useEffect(() => {
+        console.log('Estado de autenticacion cambio:', { isAuthenticated, user });
+    }, [isAuthenticated, user]);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -25,11 +30,27 @@ const Layout = () => {
         }
     };
 
-    const handleAuthSuccess = (userData) => {
+    const handleAuthSuccess = async (userData) => {
         console.log('Usuario autenticado:', userData);
+
+        // Cerrar el modal
         setShowAuthModal(false);
-        // Opcionalmente redirigir a perfil 
-        // navigate(`/profile/${userData.userId}`);
+
+        // Forzar actualizacion del estado de autenticacion
+        await checkAuthStatus();
+
+        // Opcionalmente redirigir a perfil despues de un pequeno delay
+        setTimeout(() => {
+            // navigate(`/profile/${userData.userId}`);
+        }, 100);
+    };
+
+    const handleOpenAuthModal = () => {
+        setShowAuthModal(true);
+    };
+
+    const handleCloseAuthModal = () => {
+        setShowAuthModal(false);
     };
 
     return (
@@ -61,14 +82,17 @@ const Layout = () => {
                         {loading ? (
                             // Mientras carga
                             <div className="loading-auth">Cargando...</div>
-                        ) : isAuthenticated ? (
-                            // Usuario LOGEADO
+                        ) : isAuthenticated && user ? (
+                            // Usuario LOGEADO - Mostrar imagen de perfil
                             <div className="user-menu">
                                 <Link to={`/profile/${user.userId}`} className="profile-link">
                                     <img
-                                        src={user.profilePictureUrl || "/user_p.png"}
+                                        src="/user_p.png"
                                         alt={`${user.username} Profile`}
                                         className="profile-image"
+                                        onError={(e) => {
+                                            e.target.src = "/user_p.png"; // Fallback
+                                        }}
                                     />
                                     <span className="profile-name">{user.username}</span>
                                 </Link>
@@ -77,14 +101,14 @@ const Layout = () => {
                                     onClick={handleLogout}
                                     title="Cerrar sesion"
                                 >
-                                   
+                                    X
                                 </button>
                             </div>
                         ) : (
-                            // Usuario NO logeado
+                            // Usuario NO logeado - Mostrar boton de login
                             <button
                                 className="btn-login"
-                                onClick={() => setShowAuthModal(true)}
+                                onClick={handleOpenAuthModal}
                             >
                                 Iniciar Sesion
                             </button>
@@ -103,17 +127,17 @@ const Layout = () => {
 
             {/* Modal de autenticacion */}
             {showAuthModal && (
-                <div className="auth-modal-overlay" onClick={() => setShowAuthModal(false)}>
+                <div className="auth-modal-overlay" onClick={handleCloseAuthModal}>
                     <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>
                         <button
                             className="btn-close-modal"
-                            onClick={() => setShowAuthModal(false)}
+                            onClick={handleCloseAuthModal}
                         >
-                            
+                            X
                         </button>
                         <AuthForm
                             onSuccess={handleAuthSuccess}
-                            onCancel={() => setShowAuthModal(false)}
+                            onCancel={handleCloseAuthModal}
                         />
                     </div>
                 </div>
