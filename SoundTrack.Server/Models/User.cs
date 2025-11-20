@@ -17,9 +17,9 @@ namespace SoundTrack.Server.Models
         public List<UserFollow> Following { get; set; }
         public List<Review> Reviews { get; set; }
 
-        public string FavoriteArtistIds { get; set; } 
-        public string FavoriteAlbumIds { get; set; }  
-        public string FavoriteSongIds { get; set; }
+        public string? FavoriteArtistIds { get; set; } 
+        public string? FavoriteAlbumIds { get; set; }  
+        public string? FavoriteSongIds { get; set; }
         //Trending Tracks usando los id separados por ,
         public List<SongProfile> TrendingTracks { get; set; }
         public List<ArtistProfile> TrendingArtists { get; set; }
