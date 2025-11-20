@@ -1,14 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations;
 using SoundTrack.Server.Data;
-using SoundTrack.Server.Models;
 using SoundTrack.Server.Services;
-using System.Configuration;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.DependencyInjection;
 using AspNet.Security.OAuth.Spotify;
-using Microsoft.AspNetCore.HttpOverrides; // Necesario para los headers
 
 namespace SoundTrack.Server
 {
@@ -28,21 +22,28 @@ namespace SoundTrack.Server
 						policy.WithOrigins(
 							"https://localhost:49825",
 							"https://127.0.0.1:49825")
-								.AllowAnyHeader()
-								.AllowAnyMethod()
-								.AllowCredentials();
+						.AllowAnyHeader()
+						.AllowAnyMethod()
+						.AllowCredentials();
 					});
 			});
 
 			builder.Services.AddHttpClient();
 			builder.Services.AddScoped<ISpotifyProfileService, SpotifyProfileService>();
-			builder.Services.AddScoped<ISpotifyTokenService, SpotifyTokenService>();//Para agregar servicio de manejo de tokens
+			builder.Services.AddScoped<ISpotifyTokenService, SpotifyTokenService>();
 
 			var databaseConfig = builder.Configuration.GetSection("ConnectionStrings").Get<DatabaseConfig>();
-			builder.Services.AddDbContext<SoundTrackContext>(options => options.UseNpgsql(databaseConfig.SupabaseConnection));
+			builder.Services.AddDbContext<SoundTrackContext>(options =>
+				options.UseNpgsql(databaseConfig.SupabaseConnection));
 
+			
 			builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 			{
+				options.Password.RequireDigit = true;
+				options.Password.RequireLowercase = true;
+				options.Password.RequireUppercase = true;
+				options.Password.RequireNonAlphanumeric = false;
+				options.Password.RequiredLength = 6;
 				options.User.RequireUniqueEmail = true;
 			})
 			.AddEntityFrameworkStores<SoundTrackContext>()
@@ -55,41 +56,26 @@ namespace SoundTrack.Server
 				options.SlidingExpiration = true;
 			});
 
-			
+			// Autenticacion con Spotify
 			builder.Services.AddAuthentication().AddSpotify(options =>
 			{
 				options.ClientId = builder.Configuration["Spotify:ClientId"];
 				options.ClientSecret = builder.Configuration["Spotify:ClientSecret"];
 				options.CallbackPath = "/signin-spotify";
 				options.SaveTokens = true;
-            // ⭐ AGREGADO: Configuración de Identity
-            builder.Services.AddIdentity<User, IdentityRole>(options =>
-            {
-                options.Password.RequireDigit = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequiredLength = 6;
-                options.User.RequireUniqueEmail = true;
-            })
-            .AddEntityFrameworkStores<SoundTrackContext>()
-            .AddDefaultTokenProviders();
 
 				options.Scope.Add("user-read-private");
 				options.Scope.Add("user-read-email");
 				options.Scope.Add("user-top-read");
 
-				
 				options.Events.OnRedirectToAuthorizationEndpoint = context =>
 				{
-					// Fuerza HTTPS en el request para que la libreria lo use
 					context.Request.Scheme = "https";
 					context.Request.Host = new HostString("127.0.0.1", 7232);
 
-					// La librería usara estos valores para construir la redirect_uri correcta
 					var redirectUri = context.RedirectUri
-					.Replace("http://", "https://")
-					.Replace("localhost", "127.0.0.1");
+						.Replace("http://", "https://")
+						.Replace("localhost", "127.0.0.1");
 
 					context.Response.Redirect(redirectUri);
 					return Task.CompletedTask;
@@ -97,7 +83,6 @@ namespace SoundTrack.Server
 
 				options.Events.OnCreatingTicket = async context =>
 				{
-					// Tambien forzamos HTTPS aquí por si acaso
 					context.Request.Scheme = "https";
 					context.Request.Host = new HostString("127.0.0.1", 7232);
 
@@ -110,48 +95,46 @@ namespace SoundTrack.Server
 					{
 						var services = context.HttpContext.RequestServices;
 						var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+						var dbContext = services.GetRequiredService<SoundTrackContext>();
+
+						// Buscar o crear usuario en AspNetUsers
 						var identityUser = await userManager.FindByEmailAsync(email);
 
 						if (identityUser == null)
 						{
-							identityUser = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
+							identityUser = new IdentityUser
+							{
+								UserName = email,
+								Email = email,
+								EmailConfirmed = true
+							};
 							await userManager.CreateAsync(identityUser);
 						}
 
-						var dbContext = services.GetRequiredService<SoundTrackContext>();
-						var customUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+						// Guardar tokens de Spotify en AspNetUserTokens
+						await userManager.SetAuthenticationTokenAsync(
+							identityUser,
+							"Spotify",
+							"access_token",
+							accessToken
+						);
 
-						if (customUser == null)
-						{
-							customUser = new SoundTrack.Server.Models.User
-							{
-								Username = name ?? "SpotifyUser",
-								Email = email,
-								CreateDate = DateTime.UtcNow,
-								BirthDay = DateTime.UtcNow,
-								ProfilePictureUrl = ""
-							};
-							dbContext.Users.Add(customUser);
-						}
-
-						customUser.SpotifyAccessToken = accessToken;
-						customUser.SpotifyRefreshToken = refreshToken;
-
-						await dbContext.SaveChangesAsync();
+						await userManager.SetAuthenticationTokenAsync(
+							identityUser,
+							"Spotify",
+							"refresh_token",
+							refreshToken
+						);
 					}
 				};
 			});
-			
+
 			builder.Services.AddControllers();
 			builder.Services.AddScoped<ISoundTrackRepository, SoundTrackRepository>();
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
-			
-
 			var app = builder.Build();
-
-		
 
 			app.UseDefaultFiles();
 			app.UseStaticFiles();

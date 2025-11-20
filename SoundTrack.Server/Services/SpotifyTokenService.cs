@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SoundTrack.Server.Data;
+﻿using Microsoft.AspNetCore.Identity;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -17,35 +16,59 @@ namespace SoundTrack.Server.Services
 	{
 		private readonly IHttpClientFactory _httpClientFactory;
 		private readonly IConfiguration _configuration;
-		private readonly SoundTrackContext _context;
+		private readonly UserManager<IdentityUser> _userManager;
 
 		public SpotifyTokenService(
 			IHttpClientFactory httpClientFactory,
 			IConfiguration configuration,
-			SoundTrackContext context)
+			UserManager<IdentityUser> userManager)
 		{
 			_httpClientFactory = httpClientFactory;
 			_configuration = configuration;
-			_context = context;
+			_userManager = userManager;
 		}
+
 		public async Task<string> GetUserAccessTokenAsync(string email)
 		{
-			var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+			var user = await _userManager.FindByEmailAsync(email);
 
-			if (user == null || string.IsNullOrEmpty(user.SpotifyAccessToken))
+			if (user == null)
+			{
+				throw new Exception("Usuario no encontrado");
+			}
+
+			// Obtener token de AspNetUserTokens
+			var accessToken = await _userManager.GetAuthenticationTokenAsync(
+				user,
+				"Spotify",
+				"access_token"
+			);
+
+			if (string.IsNullOrEmpty(accessToken))
 			{
 				throw new Exception("Usuario no autenticado con Spotify");
 			}
 
-			//Para verificar si el token es valido
-			return user.SpotifyAccessToken;
+			return accessToken;
 		}
 
 		public async Task<string> RefreshUserTokenAsync(string email)
 		{
-			var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+			var user = await _userManager.FindByEmailAsync(email);
 
-			if (user == null || string.IsNullOrEmpty(user.SpotifyRefreshToken))
+			if (user == null)
+			{
+				throw new Exception("Usuario no encontrado");
+			}
+
+			// Obtener refresh token de AspNetUserTokens
+			var refreshToken = await _userManager.GetAuthenticationTokenAsync(
+				user,
+				"Spotify",
+				"refresh_token"
+			);
+
+			if (string.IsNullOrEmpty(refreshToken))
 			{
 				throw new Exception("Usuario sin refresh token");
 			}
@@ -56,7 +79,6 @@ namespace SoundTrack.Server.Services
 			var client = _httpClientFactory.CreateClient();
 			var request = new HttpRequestMessage(HttpMethod.Post, "https://accounts.spotify.com/api/token");
 
-			// Autenticación Basic
 			var auth = Convert.ToBase64String(
 				Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}")
 			);
@@ -65,7 +87,7 @@ namespace SoundTrack.Server.Services
 			request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
 			{
 				{ "grant_type", "refresh_token" },
-				{ "refresh_token", user.SpotifyRefreshToken }
+				{ "refresh_token", refreshToken }
 			});
 
 			var response = await client.SendAsync(request);
@@ -87,16 +109,23 @@ namespace SoundTrack.Server.Services
 				throw new Exception("Respuesta de Spotify invalida");
 			}
 
-			// Actualizar en DB
-			user.SpotifyAccessToken = tokenResponse.AccessToken;
+			// Actualizar tokens en AspNetUserTokens
+			await _userManager.SetAuthenticationTokenAsync(
+				user,
+				"Spotify",
+				"access_token",
+				tokenResponse.AccessToken
+			);
 
-			// Spotify puede devolver nuevo refresh token (opcional)
 			if (!string.IsNullOrEmpty(tokenResponse.RefreshToken))
 			{
-				user.SpotifyRefreshToken = tokenResponse.RefreshToken;
+				await _userManager.SetAuthenticationTokenAsync(
+					user,
+					"Spotify",
+					"refresh_token",
+					tokenResponse.RefreshToken
+				);
 			}
-
-			await _context.SaveChangesAsync();
 
 			Console.WriteLine($"Token refrescado para {email}");
 			return tokenResponse.AccessToken;
