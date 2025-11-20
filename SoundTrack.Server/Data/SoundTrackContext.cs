@@ -61,37 +61,40 @@ namespace SoundTrack.Server.Data
             {
                 entity.HasKey(r => r.Id);
 
+                // Configurar propiedades
+                entity.Property(r => r.UserId).IsRequired();
+                entity.Property(r => r.Title).IsRequired();
+                entity.Property(r => r.Content).IsRequired();
+                entity.Property(r => r.Likes).HasDefaultValue(0);
+                entity.Property(r => r.Dislikes).HasDefaultValue(0);
+                entity.Property(r => r.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
                 // Relación con User
                 entity.HasOne(r => r.User)
                     .WithMany(u => u.Reviews)
                     .HasForeignKey(r => r.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                // ⭐ FIXED: Relación con ArtistProfile (opcional)
+                // ⭐ KEY FIX: Explicitly configure WITH the profile's reviews collection
                 entity.HasOne(r => r.ArtistProfile)
-                    .WithMany()
+                    .WithMany(a => a.reviews)  // <-- Use the collection from ArtistProfile
                     .HasForeignKey(r => r.ArtistProfileId)
-                    .HasConstraintName("FK_Reviews_ArtistProfiles_ArtistProfileId")
                     .OnDelete(DeleteBehavior.SetNull)
                     .IsRequired(false);
 
-                // ⭐ FIXED: Relación con AlbumProfile (opcional)
                 entity.HasOne(r => r.AlbumProfile)
-                    .WithMany()
+                    .WithMany(a => a.reviews)  // <-- Use the collection from AlbumProfile
                     .HasForeignKey(r => r.AlbumProfileId)
-                    .HasConstraintName("FK_Reviews_AlbumProfiles_AlbumProfileId")
                     .OnDelete(DeleteBehavior.SetNull)
                     .IsRequired(false);
 
-                // ⭐ FIXED: Relación con SongProfile (opcional)
                 entity.HasOne(r => r.SongProfile)
-                    .WithMany()
+                    .WithMany(s => s.reviews)  // <-- Use the collection from SongProfile
                     .HasForeignKey(r => r.SongProfileId)
-                    .HasConstraintName("FK_Reviews_SongProfiles_SongProfileId")
                     .OnDelete(DeleteBehavior.SetNull)
                     .IsRequired(false);
 
-                // Índices para búsquedas rápidas
+                // Índices
                 entity.HasIndex(r => r.UserId);
                 entity.HasIndex(r => r.ArtistProfileId);
                 entity.HasIndex(r => r.AlbumProfileId);
