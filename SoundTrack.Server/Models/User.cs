@@ -6,7 +6,9 @@
         public string Username { get; set; }
         public string? Bio { get; set; }
         public string Email { get; set; }
-        public string? IdentityUserId { get; set; }
+        public string ? SpotifyAccessToken { get; set; }
+		public string? SpotifyRefreshToken { get; set; }
+		public string? IdentityUserId { get; set; }
         public string? ProfilePictureUrl { get; set; }
         public DateTime? BirthDay { get; set; }
         public DateTime CreateDate { get; set; }

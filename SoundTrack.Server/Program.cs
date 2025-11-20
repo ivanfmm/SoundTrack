@@ -4,102 +4,168 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using SoundTrack.Server.Data;
 using SoundTrack.Server.Services;
 using System.Configuration;
-
-
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection;
+using AspNet.Security.OAuth.Spotify;
+using Microsoft.AspNetCore.HttpOverrides; // Necesario para los headers
 
 namespace SoundTrack.Server
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-            var builder = WebApplication.CreateBuilder(args);
+	public class Program
+	{
+		public static void Main(string[] args)
+		{
+			AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+			var builder = WebApplication.CreateBuilder(args);
 
-            var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy(name: myAllowSpecificOrigins,
-                                  policy =>
-                                  {
-                                      policy.WithOrigins("https://localhost:49825")
-                                            .AllowAnyHeader()
-                                            .AllowAnyMethod()
-                                            .AllowCredentials(); // ⭐ AGREGADO: Necesario para cookies de autenticación
-                                  });
-            });
+			var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
+			builder.Services.AddCors(options =>
+			{
+				options.AddPolicy(name: myAllowSpecificOrigins,
+					policy =>
+					{
+						policy.WithOrigins(
+							"https://localhost:49825",
+							"https://127.0.0.1:49825")
+								.AllowAnyHeader()
+								.AllowAnyMethod()
+								.AllowCredentials();
+					});
+			});
 
-            builder.Services.AddHttpClient();
-            builder.Services.AddScoped<ISpotifyProfileService, SpotifyProfileService>();
+			builder.Services.AddHttpClient();
+			builder.Services.AddScoped<ISpotifyProfileService, SpotifyProfileService>();
 
-            var databaseConfig = builder.Configuration.GetSection("ConnectionStrings").Get<DatabaseConfig>();
-            Console.WriteLine($"la conexion es: {databaseConfig.SupabaseConnection}, se logr");
+			var databaseConfig = builder.Configuration.GetSection("ConnectionStrings").Get<DatabaseConfig>();
+			builder.Services.AddDbContext<SoundTrackContext>(options => options.UseNpgsql(databaseConfig.SupabaseConnection));
 
-            var spotifyClientId = builder.Configuration["Spotify:ClientId"];
-            var spotifyClientSecret = builder.Configuration["Spotify:ClientSecret"];
-            Console.WriteLine($"Spotify ClientId: {spotifyClientId ?? "NULL"}");
-            Console.WriteLine($"Spotify ClientSecret: {(string.IsNullOrEmpty(spotifyClientSecret) ? "NULL" : "***EXISTE***")}");
+			builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+			{
+				options.User.RequireUniqueEmail = true;
+			})
+			.AddEntityFrameworkStores<SoundTrackContext>()
+			.AddDefaultTokenProviders();
 
-            builder.Services.AddDbContext<SoundTrackContext>(options => options.UseNpgsql(databaseConfig.SupabaseConnection));
+			builder.Services.ConfigureApplicationCookie(options =>
+			{
+				options.Cookie.HttpOnly = true;
+				options.ExpireTimeSpan = TimeSpan.FromDays(7);
+				options.SlidingExpiration = true;
+			});
 
-            // ⭐ AGREGADO: Configuración de Identity
-            builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-            {
-                options.Password.RequireDigit = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequiredLength = 6;
-                options.User.RequireUniqueEmail = true;
-            })
-            .AddEntityFrameworkStores<SoundTrackContext>()
-            .AddDefaultTokenProviders();
+			// 👇 REEMPLAZA DESDE AQUÍ
+			builder.Services.AddAuthentication().AddSpotify(options =>
+			{
+				options.ClientId = builder.Configuration["Spotify:ClientId"];
+				options.ClientSecret = builder.Configuration["Spotify:ClientSecret"];
+				options.CallbackPath = "/signin-spotify";
+				options.SaveTokens = true;
 
-            // ⭐ AGREGADO: Configuración de cookies de autenticación
-            builder.Services.ConfigureApplicationCookie(options =>
-            {
-                options.Cookie.HttpOnly = true;
-                options.ExpireTimeSpan = TimeSpan.FromDays(7);
-                options.SlidingExpiration = true;
-                options.Events.OnRedirectToLogin = context =>
-                {
-                    context.Response.StatusCode = 401;
-                    return Task.CompletedTask;
-                };
-                options.Events.OnRedirectToAccessDenied = context =>
-                {
-                    context.Response.StatusCode = 403;
-                    return Task.CompletedTask;
-                };
-            });
+				options.Scope.Add("user-read-private");
+				options.Scope.Add("user-read-email");
+				options.Scope.Add("user-top-read");
 
-            builder.Services.AddControllers();
-            builder.Services.AddScoped<ISoundTrackRepository, SoundTrackRepository>();
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+				// 🔥 ESTO SOLUCIONA EL PROBLEMA - Intercepta ANTES de construir la redirect_uri
+				options.Events.OnRedirectToAuthorizationEndpoint = context =>
+				{
+					// Fuerza HTTPS en el request para que la librería lo use
+					context.Request.Scheme = "https";
+					context.Request.Host = new HostString("127.0.0.1", 7232);
 
-            var app = builder.Build();
+					// La librería usará estos valores para construir la redirect_uri correcta
+					var redirectUri = context.RedirectUri
+					.Replace("http://", "https://")
+					.Replace("localhost", "127.0.0.1");
 
-            app.UseDefaultFiles();
-            app.UseStaticFiles();
+					context.Response.Redirect(redirectUri);
+					return Task.CompletedTask;
+				};
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+				options.Events.OnCreatingTicket = async context =>
+				{
+					// También forzamos HTTPS aquí por si acaso
+					context.Request.Scheme = "https";
+					context.Request.Host = new HostString("127.0.0.1", 7232);
 
-            app.UseHttpsRedirection();
-            app.UseCors(myAllowSpecificOrigins);
+					var accessToken = context.AccessToken;
+					var refreshToken = context.RefreshToken;
+					var email = context.Principal.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+					var name = context.Principal.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
 
-            // ⭐ AGREGADO: Authentication DEBE ir antes de Authorization
-            app.UseAuthentication();
-            app.UseAuthorization();
+					if (email != null)
+					{
+						var services = context.HttpContext.RequestServices;
+						var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+						var identityUser = await userManager.FindByEmailAsync(email);
 
-            app.MapControllers();
-            app.MapFallbackToFile("/index.html");
+						if (identityUser == null)
+						{
+							identityUser = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
+							await userManager.CreateAsync(identityUser);
+						}
 
-            app.Run();
-        }
-    }
+						var dbContext = services.GetRequiredService<SoundTrackContext>();
+						var customUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+						if (customUser == null)
+						{
+							customUser = new SoundTrack.Server.Models.User
+							{
+								Username = name ?? "SpotifyUser",
+								Email = email,
+								CreateDate = DateTime.UtcNow,
+								BirthDay = DateTime.UtcNow,
+								ProfilePictureUrl = ""
+							};
+							dbContext.Users.Add(customUser);
+						}
+
+						customUser.SpotifyAccessToken = accessToken;
+						customUser.SpotifyRefreshToken = refreshToken;
+
+						await dbContext.SaveChangesAsync();
+					}
+				};
+			});
+			// 👆 HASTA AQUÍ
+			builder.Services.AddControllers();
+			builder.Services.AddScoped<ISoundTrackRepository, SoundTrackRepository>();
+			builder.Services.AddEndpointsApiExplorer();
+			builder.Services.AddSwaggerGen();
+
+			// Agrega esto justo antes de var app = builder.Build();
+			//builder.WebHost.UseUrls("https://127.0.0.1:7232");
+
+			var app = builder.Build();
+
+			// 👇👇👇 ESTE ES EL ÚNICO ARREGLO QUE NECESITAS 👇👇👇
+			// Debe ser LO PRIMERO. Borré los duplicados que tenías.
+			app.Use(async (context, next) =>
+			{
+				context.Request.Scheme = "https";
+				await next();
+			});
+			// 👆👆👆 FIN DEL ARREGLO 👆👆👆
+
+			app.UseDefaultFiles();
+			app.UseStaticFiles();
+
+			if (app.Environment.IsDevelopment())
+			{
+				app.UseSwagger();
+				app.UseSwaggerUI();
+			}
+
+			app.UseHttpsRedirection();
+			app.UseCors(myAllowSpecificOrigins);
+
+			app.UseAuthentication();
+			app.UseAuthorization();
+
+			app.MapControllers();
+			app.MapFallbackToFile("/index.html");
+
+			app.Run();
+		}
+	}
 }

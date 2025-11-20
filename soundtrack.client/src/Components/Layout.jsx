@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import AuthForm from './AuthForm';
@@ -19,7 +19,7 @@ const Layout = () => {
     };
 
     const handleLogout = async () => {
-        if (window.confirm('¿Estás seguro que quieres cerrar sesión?')) {
+        if (window.confirm('Â¿Estas seguro que quieres cerrar sesion?')) {
             await logout();
             navigate('/');
         }
@@ -30,6 +30,12 @@ const Layout = () => {
         setShowAuthModal(false);
         // Opcionalmente redirigir a perfil
         // navigate(`/profile/${userData.userId}`);
+    };
+
+    //Para login con Spotify
+    const handleSpotifyLogin = () => {
+        const backendPort = "7232";
+        window.location.href = `https://127.0.0.1:${backendPort}/api/AuthSpotify/login`;
     };
 
     return (
@@ -43,7 +49,7 @@ const Layout = () => {
                         </Link>
                     </div>
 
-                    {/* Búsqueda centro */}
+                    {/* Busqueda centro */}
                     <div className="navbar-center">
                         <form onSubmit={handleSearch}>
                             <input
@@ -56,7 +62,7 @@ const Layout = () => {
                         </form>
                     </div>
 
-                    {/* Perfil derecha - Cambia según autenticación */}
+                    {/* Perfil derecha - Cambia segun autenticacion */}
                     <div className="navbar-right">
                         {loading ? (
                             // Mientras carga
@@ -75,7 +81,7 @@ const Layout = () => {
                                 <button
                                     className="btn-logout"
                                     onClick={handleLogout}
-                                    title="Cerrar sesión"
+                                    title="Cerrar sesion"
                                 >
                                    
                                 </button>
@@ -86,7 +92,7 @@ const Layout = () => {
                                 className="btn-login"
                                 onClick={() => setShowAuthModal(true)}
                             >
-                                Iniciar Sesión
+                                Iniciar Sesion
                             </button>
                         )}
                     </div>
@@ -101,7 +107,7 @@ const Layout = () => {
                 <p>&copy; 2025 SoundTrack</p>
             </footer>
 
-            {/* Modal de autenticación */}
+            {/* Modal de autenticacion */}
             {showAuthModal && (
                 <div className="auth-modal-overlay" onClick={() => setShowAuthModal(false)}>
                     <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -115,6 +121,37 @@ const Layout = () => {
                             onSuccess={handleAuthSuccess}
                             onCancel={() => setShowAuthModal(false)}
                         />
+
+                        <div style={{
+                            marginTop: '20px',
+                            paddingTop: '20px',
+                            borderTop: '1px solid #444', 
+                            textAlign: 'center'
+                        }}>
+                            <p style={{ marginBottom: '10px', fontSize: '0.9em', color: '#888' }}>O continua con</p>
+                            <button
+                                onClick={handleSpotifyLogin}
+                                style={{
+                                    backgroundColor: '#1DB954', 
+                                    color: 'white',
+                                    padding: '12px 24px',
+                                    border: 'none',
+                                    borderRadius: '50px',
+                                    fontSize: '16px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '100%',
+                                    transition: 'transform 0.2s'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                                <span style={{ marginRight: '10px' }}></span> Iniciar Sesion con Spotify
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

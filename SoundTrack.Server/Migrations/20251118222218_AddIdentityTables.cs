@@ -12,30 +12,31 @@ namespace SoundTrack.Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "PasswordHash",
-                table: "Users");
+			/*migrationBuilder.DropColumn(
+			   name: "PasswordHash",
+				 table: "Users");
 
-            migrationBuilder.DropColumn(
-                name: "salt",
-                table: "Users");
+			 migrationBuilder.DropColumn(
+				 name: "salt",
+				 table: "Users");
 
-            migrationBuilder.AlterColumn<string>(
-                name: "ProfilePictureUrl",
-                table: "Users",
-                type: "text",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "text");
+			 migrationBuilder.AlterColumn<string>(
+				 name: "ProfilePictureUrl",
+				 table: "Users",
+				 type: "text",
+				 nullable: true,
+				 oldClrType: typeof(string),
+				 oldType: "text");
 
-            migrationBuilder.AddColumn<string>(
-                name: "IdentityUserId",
-                table: "Users",
-                type: "character varying(450)",
-                maxLength: 450,
-                nullable: true);
-
-            migrationBuilder.CreateTable(
+			 migrationBuilder.AddColumn<string>(
+				 name: "IdentityUserId",
+				 table: "Users",
+				 type: "character varying(450)",
+				 maxLength: 450,
+				 nullable: true);
+            
+			
+			migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
                 {
@@ -48,8 +49,8 @@ namespace SoundTrack.Server.Migrations
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
                 });
-
-            migrationBuilder.CreateTable(
+            
+			migrationBuilder.CreateTable(
                 name: "AspNetUsers",
                 columns: table => new
                 {
@@ -179,7 +180,7 @@ namespace SoundTrack.Server.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
+            
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
                 table: "Users",
@@ -191,6 +192,7 @@ namespace SoundTrack.Server.Migrations
                 table: "Users",
                 column: "Username",
                 unique: true);
+            
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -228,6 +230,7 @@ namespace SoundTrack.Server.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
+            */
         }
 
         /// <inheritdoc />
