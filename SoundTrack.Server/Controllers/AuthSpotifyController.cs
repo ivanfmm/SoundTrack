@@ -23,8 +23,8 @@ namespace SoundTrack.Server.Controllers
 		[HttpGet("callback")]
 		public IActionResult Callback()
 		{
-			// Después del login, redirigir al frontend
-			return Redirect("https://localhost:49825/");
+			// Despues del login redirige al frontend
+			return Redirect("https://127.0.0.1:49825/");
 		}
 	}
 }

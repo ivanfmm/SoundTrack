@@ -24,7 +24,7 @@ namespace SoundTrack.Server.Data
 		{
 			base.OnModelCreating(modelBuilder);
 
-			// ===== CONFIGURACIÓN DE USER =====
+			//Configuracion user
 			modelBuilder.Entity<User>(entity =>
 			{
 				entity.HasIndex(e => e.UserName).IsUnique();
@@ -40,7 +40,7 @@ namespace SoundTrack.Server.Data
 					.OnDelete(DeleteBehavior.Restrict);
 			});
 
-			// ===== CONFIGURACIÓN DE USERUSER =====
+			// configuracion User User
 			modelBuilder.Entity<UserUser>(entity =>
 			{
 				entity.ToTable("UserUser");
@@ -49,7 +49,7 @@ namespace SoundTrack.Server.Data
 				entity.Property(uf => uf.FollowDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
 			});
 
-			// ===== CONFIGURACIÓN DE REVIEW =====
+			//Configuracion review
 			modelBuilder.Entity<Review>(entity =>
 			{
 				entity.HasKey(r => r.Id);
@@ -62,13 +62,13 @@ namespace SoundTrack.Server.Data
 				entity.Property(r => r.Dislikes).HasDefaultValue(0);
 				entity.Property(r => r.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-				// Relación con User
+				// Relacion con user
 				entity.HasOne(r => r.User)
 					.WithMany(u => u.Reviews)
 					.HasForeignKey(r => r.UserId)
 					.OnDelete(DeleteBehavior.Cascade);
 
-				// Relaciones con Profiles
+				// Relaciones con profiles
 				entity.HasOne(r => r.ArtistProfile)
 					.WithMany(a => a.reviews)
 					.HasForeignKey(r => r.ArtistProfileId)
@@ -87,7 +87,7 @@ namespace SoundTrack.Server.Data
 					.OnDelete(DeleteBehavior.SetNull)
 					.IsRequired(false);
 
-				// Índices
+				// indices
 				entity.HasIndex(r => r.UserId);
 				entity.HasIndex(r => r.ArtistProfileId);
 				entity.HasIndex(r => r.AlbumProfileId);
@@ -95,7 +95,7 @@ namespace SoundTrack.Server.Data
 				entity.HasIndex(r => r.CreatedAt);
 			});
 
-			// ===== CONFIGURACIÓN DE REVIEWCOMMENT =====
+			// Configuracion review coment
 			modelBuilder.Entity<ReviewComment>(entity =>
 			{
 				entity.HasKey(rc => rc.Id);
@@ -114,7 +114,7 @@ namespace SoundTrack.Server.Data
 				entity.HasIndex(rc => rc.UserId);
 			});
 
-			// ===== CONFIGURACIÓN DE REVIEWLIKE =====
+			// Configuracion review like
 			modelBuilder.Entity<ReviewLike>(entity =>
 			{
 				entity.HasKey(rl => rl.Id);
@@ -131,7 +131,7 @@ namespace SoundTrack.Server.Data
 					.OnDelete(DeleteBehavior.Cascade);
 			});
 
-			// ===== CONFIGURACIÓN DE ARTISTFOLLOW =====
+			// Configuracion artist follow
 			modelBuilder.Entity<ArtistFollow>(entity =>
 			{
 				entity.HasKey(af => af.Id);

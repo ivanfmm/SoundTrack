@@ -14,7 +14,7 @@ namespace SoundTrack.Server
 			AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 			var builder = WebApplication.CreateBuilder(args);
 
-			// ===== CORS =====
+			
 			var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
 			builder.Services.AddCors(options =>
 			{
@@ -30,19 +30,19 @@ namespace SoundTrack.Server
 					});
 			});
 
-			// ===== SERVICIOS =====
+			//Servicios
 			builder.Services.AddHttpClient();
 			builder.Services.AddScoped<ISpotifyProfileService, SpotifyProfileService>();
 			builder.Services.AddScoped<ISpotifyTokenService, SpotifyTokenService>();
 			builder.Services.AddScoped<ISoundTrackRepository, SoundTrackRepository>();
 
-			// ===== BASE DE DATOS =====
+			// Base de datos
 			var databaseConfig = builder.Configuration.GetSection("ConnectionStrings").Get<DatabaseConfig>();
 			builder.Services.AddDbContext<SoundTrackContext>(options =>
 				options.UseNpgsql(databaseConfig!.SupabaseConnection,
 					o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
-			// ===== IDENTITY =====
+			//Identity
 			builder.Services.AddIdentity<User, IdentityRole>(options =>
 			{
 				options.Password.RequireDigit = true;
@@ -55,7 +55,7 @@ namespace SoundTrack.Server
 			.AddEntityFrameworkStores<SoundTrackContext>()
 			.AddDefaultTokenProviders();
 
-			// ===== COOKIES =====
+			// Cookies
 			builder.Services.ConfigureApplicationCookie(options =>
 			{
 				options.Cookie.Name = "SoundTrackAuth";
@@ -77,15 +77,15 @@ namespace SoundTrack.Server
 				};
 			});
 
-			// ===== CONFIGURACIÓN DE COOKIES DE OAUTH =====
+			// Cookies OAuth 2 spotify
 			builder.Services.ConfigureExternalCookie(options =>
 			{
-				options.Cookie.SameSite = SameSiteMode.Lax; // 👈 Importante para OAuth
+				options.Cookie.SameSite = SameSiteMode.Lax; 
 				options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 				options.Cookie.HttpOnly = true;
 			});
 
-			// ===== SPOTIFY OAUTH =====
+			//OAuth2 spotify
 			builder.Services.AddAuthentication().AddSpotify(options =>
 			{
 				options.ClientId = builder.Configuration["Spotify:ClientId"]!;

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using SoundTrack.Server.Models; // 👈 AGREGADO
+using SoundTrack.Server.Models; 
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -17,12 +17,12 @@ namespace SoundTrack.Server.Services
 	{
 		private readonly IHttpClientFactory _httpClientFactory;
 		private readonly IConfiguration _configuration;
-		private readonly UserManager<User> _userManager; // 👈 CAMBIADO: User en lugar de IdentityUser
+		private readonly UserManager<User> _userManager; 
 
 		public SpotifyTokenService(
 			IHttpClientFactory httpClientFactory,
 			IConfiguration configuration,
-			UserManager<User> userManager) // 👈 CAMBIADO
+			UserManager<User> userManager) 
 		{
 			_httpClientFactory = httpClientFactory;
 			_configuration = configuration;
@@ -38,7 +38,7 @@ namespace SoundTrack.Server.Services
 				throw new Exception("Usuario no encontrado");
 			}
 
-			// 👇 Ahora obtenemos el token directamente del modelo User
+			
 			if (string.IsNullOrEmpty(user.SpotifyAccessToken))
 			{
 				throw new Exception("Usuario no autenticado con Spotify");
@@ -56,7 +56,7 @@ namespace SoundTrack.Server.Services
 				throw new Exception("Usuario no encontrado");
 			}
 
-			// 👇 Obtenemos el refresh token del modelo User
+			
 			if (string.IsNullOrEmpty(user.SpotifyRefreshToken))
 			{
 				throw new Exception("Usuario sin refresh token");
@@ -98,7 +98,7 @@ namespace SoundTrack.Server.Services
 				throw new Exception("Respuesta de Spotify inválida");
 			}
 
-			// 👇 Actualizamos los tokens en el modelo User
+			
 			user.SpotifyAccessToken = tokenResponse.AccessToken;
 
 			if (!string.IsNullOrEmpty(tokenResponse.RefreshToken))
