@@ -35,6 +35,7 @@ namespace SoundTrack.Server
 
 			builder.Services.AddHttpClient();
 			builder.Services.AddScoped<ISpotifyProfileService, SpotifyProfileService>();
+			builder.Services.AddScoped<ISpotifyTokenService, SpotifyTokenService>();//Para agregar servicio de manejo de tokens
 
 			var databaseConfig = builder.Configuration.GetSection("ConnectionStrings").Get<DatabaseConfig>();
 			builder.Services.AddDbContext<SoundTrackContext>(options => options.UseNpgsql(databaseConfig.SupabaseConnection));

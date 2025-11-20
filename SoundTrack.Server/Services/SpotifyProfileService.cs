@@ -17,34 +17,53 @@ namespace SoundTrack.Server.Services
         Task<AlbumProfile> EnsureAlbumProfileExists(string spotifyId);
 
 		Task<string> GetAccessTokenAsync(); //Para poder pasar access token al front end
+		Task<string> GetUserAccessTokenAsync(string email);//Para poder pasar access token del usuario al front end
 	}
 
     public class SpotifyProfileService : ISpotifyProfileService
     {
-        public async Task<string> GetAccessTokenAsync() //Para poder pasar access token al front end.
-		{
-			return await GetSpotifyToken();
-		}
-
+       
 		private readonly SoundTrackContext _context;
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _httpClientFactory;
+		private readonly ISpotifyTokenService _tokenService;
 
 
-        public SpotifyProfileService(
+		public SpotifyProfileService(
             SoundTrackContext context,
             IConfiguration configuration,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            ISpotifyTokenService tokenService)
         {
-            _context = context;
+
+			_context = context;
             _configuration = configuration;
             _httpClientFactory = httpClientFactory;
+            _tokenService = tokenService;
         }
 
-        /// <summary>
-        /// Verifica si existe un SongProfile, si no, lo crea con sus dependencias
-        /// </summary>
-        public async Task<SongProfile> EnsureSongProfileExists(string spotifyId)
+	    public async Task<string> GetAccessTokenAsync() //Para poder pasar access token al front end.
+	    {
+	    	return await GetSpotifyToken();
+	    }
+
+
+        public async Task<string> GetUserAccessTokenAsync(string email) //Para poder pasar access token del usuario al front end
+	{
+        try
+        {
+            return await _tokenService.GetUserAccessTokenAsync(email);
+		}
+        catch
+        {
+            return await _tokenService.RefreshUserTokenAsync(email);
+        }
+    }
+
+	/// <summary>
+	/// Verifica si existe un SongProfile, si no, lo crea con sus dependencias
+	/// </summary>
+	public async Task<SongProfile> EnsureSongProfileExists(string spotifyId)
         {
             // 1. Verificar si ya existe
             var existingSong = await _context.SongProfiles

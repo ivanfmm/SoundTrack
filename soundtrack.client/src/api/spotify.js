@@ -15,10 +15,61 @@ export const getSpotifyToken = async () => {
     }
 };
 
+export const getUserSpotifyToken = async () => {
+    try {
+        const response = await fetch('/api/Spotify/user-token', {
+            credentials: 'include' // Envia cookies de autenticacion
+        });
+
+        if (!response.ok) {
+            console.error('Error obteniendo token de usuario');
+            return null;
+        }
+
+        const data = await response.json();
+        return data.access_token;
+    } catch (error) {
+        console.error('Error:', error);
+        return null;
+    }
+};
+
+//Para usar el token de usuario si esta autenticado, sino el de la app
+export const getToken = async () => {
+    try {
+        // Primero intentar con token de usuario
+        const response = await fetch('/api/Spotify/user-token', {
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Usando token de usuario');
+            return data.access_token;
+        }
+
+        if (response.status === 401) {
+            console.log('Usario no autenticado: Usando token de app');
+            const appResponse = await fetch('/api/Spotify/token');
+
+            if (!appResponse.ok) {
+                throw new Error('Error del servidor al obtener token de app');
+            }
+
+            const appData = await appResponse.json();
+            return appData.access_token;
+        }
+    } catch (error) {
+        console.error('Error obteniendo token:', error);
+        return null;
+    }
+};
+
+   
 
 
 export const getTopTracks = async () => {
-    const token = await getSpotifyToken();
+    const token = await getToken();
     
     if (!token) return [];
     
@@ -39,7 +90,7 @@ export const getTopTracks = async () => {
 };
 // Top 10 Artistas de la playlist "Most Followed Artists"
 export const getTopArtists = async () => {
-    const token = await getSpotifyToken();
+    const token = await getToken();
     
     
     if (!token) return [];
@@ -88,7 +139,7 @@ export const getTopArtists = async () => {
 };
 
 export const getArtistById = async (artistId) => {
-    const token = await getSpotifyToken();
+    const token = await getToken();
     
     if (!token) {
         console.error("No token disponible");
@@ -124,7 +175,7 @@ export const getArtistById = async (artistId) => {
 };
 
 export const getArtistTopTracks = async (artistId) => {
-    const token = await getSpotifyToken();
+    const token = await getToken();
     
     if (!token) return [];
     
@@ -154,7 +205,7 @@ export const getArtistTopTracks = async (artistId) => {
 };
 
 export const getArtistAlbums = async (artistId) => {
-    const token = await getSpotifyToken();
+    const token = await getToken();
     
     if (!token) return [];
     
@@ -184,7 +235,7 @@ export const getArtistAlbums = async (artistId) => {
 };
 
 export const getAlbumById = async (albumId) => {
-    const token = await getSpotifyToken();
+    const token = await getToken();
     
     if (!token) {
         console.error("No token disponible");
@@ -221,7 +272,7 @@ export const getAlbumById = async (albumId) => {
 
 
 export const searchSpotify = async (query) => {
-    const token = await getSpotifyToken();
+    const token = await getToken();
     
     if (!token || !query) {
         console.error("No token o query vacio");
@@ -267,7 +318,7 @@ export const searchSpotify = async (query) => {
 
 //Para los Trending tracks de los usuario
 export const getTrackById = async (trackId) => {
-    const token = await getSpotifyToken();
+    const token = await getToken();
     
     if (!token) {
         console.error("No token disponible");
