@@ -19,7 +19,7 @@ const Layout = () => {
     };
 
     const handleLogout = async () => {
-        if (window.confirm('¿Estás seguro que quieres cerrar sesión?')) {
+        if (window.confirm('Estas seguro que quieres cerrar sesion?')) {
             await logout();
             navigate('/');
         }
@@ -28,7 +28,7 @@ const Layout = () => {
     const handleAuthSuccess = (userData) => {
         console.log('Usuario autenticado:', userData);
         setShowAuthModal(false);
-        // Opcionalmente redirigir a perfil
+        // Opcionalmente redirigir a perfil 
         // navigate(`/profile/${userData.userId}`);
     };
 
@@ -43,7 +43,7 @@ const Layout = () => {
                         </Link>
                     </div>
 
-                    {/* Búsqueda centro */}
+                    {/* Busqueda centro */}
                     <div className="navbar-center">
                         <form onSubmit={handleSearch}>
                             <input
@@ -56,7 +56,7 @@ const Layout = () => {
                         </form>
                     </div>
 
-                    {/* Perfil derecha - Cambia según autenticación */}
+                    {/* Perfil derecha - Cambia segun autenticacion */}
                     <div className="navbar-right">
                         {loading ? (
                             // Mientras carga
@@ -75,7 +75,7 @@ const Layout = () => {
                                 <button
                                     className="btn-logout"
                                     onClick={handleLogout}
-                                    title="Cerrar sesión"
+                                    title="Cerrar sesion"
                                 >
                                    
                                 </button>
@@ -86,7 +86,7 @@ const Layout = () => {
                                 className="btn-login"
                                 onClick={() => setShowAuthModal(true)}
                             >
-                                Iniciar Sesión
+                                Iniciar Sesion
                             </button>
                         )}
                     </div>
@@ -101,7 +101,7 @@ const Layout = () => {
                 <p>&copy; 2025 SoundTrack</p>
             </footer>
 
-            {/* Modal de autenticación */}
+            {/* Modal de autenticacion */}
             {showAuthModal && (
                 <div className="auth-modal-overlay" onClick={() => setShowAuthModal(false)}>
                     <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>

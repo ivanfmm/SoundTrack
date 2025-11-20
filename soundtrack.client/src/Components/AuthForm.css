@@ -144,7 +144,7 @@
         color: var(--color-neon-green);
     }
 
-/* Mensaje de autenticación requerida en ReviewForm */
+/* Mensaje de autenticacion requerida en ReviewForm */
 .auth-required-message {
     text-align: center;
     padding: 2rem;
