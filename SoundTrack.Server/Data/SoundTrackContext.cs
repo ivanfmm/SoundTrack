@@ -14,7 +14,7 @@ namespace SoundTrack.Server.Data
 		public DbSet<ReviewComment> ReviewComments { get; set; }
 		public DbSet<ReviewLike> ReviewLikes { get; set; }
 		public DbSet<ArtistFollow> ArtistFollows { get; set; }
-		public DbSet<UserUser> UserFollows { get; set; }
+		public DbSet<UserUser> UserUsers { get; set; }
 
 		public SoundTrackContext(DbContextOptions<SoundTrackContext> options) : base(options)
 		{
@@ -40,17 +40,25 @@ namespace SoundTrack.Server.Data
 					.OnDelete(DeleteBehavior.Restrict);
 			});
 
-			// configuracion User User
-			modelBuilder.Entity<UserUser>(entity =>
-			{
-				entity.ToTable("UserUser");
-				entity.HasKey(uf => uf.Id);
-				entity.HasIndex(uf => new { uf.FollowerId, uf.FollowingId }).IsUnique();
-				entity.Property(uf => uf.FollowDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
-			});
+            // configuracion User User
+            // configuracion User User
+            modelBuilder.Entity<UserUser>(entity =>
+            {
+                entity.ToTable("UserUser");
 
-			//Configuracion review
-			modelBuilder.Entity<Review>(entity =>
+                // Explicitly map all columns to handle PostgreSQL case sensitivity
+                entity.HasKey(uf => uf.Id);
+                entity.Property(uf => uf.Id).HasColumnName("Id");
+                entity.Property(uf => uf.FollowerId).HasColumnName("FollowerId");
+                entity.Property(uf => uf.FollowingId).HasColumnName("FollowingId");
+                entity.Property(uf => uf.FollowDate).HasColumnName("FollowDate");
+
+                entity.HasIndex(uf => new { uf.FollowerId, uf.FollowingId }).IsUnique();
+                entity.Property(uf => uf.FollowDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            //Configuracion review
+            modelBuilder.Entity<Review>(entity =>
 			{
 				entity.HasKey(r => r.Id);
 

@@ -1,58 +1,74 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 import AASGrid from './Common/AASGrid';
 import FavoritesSelector from './Common/FavoritesSelector';
 import { getArtistById, getAlbumById, getTrackById } from '../api/spotify';
 import './UserProfile.css';
 
 const UserProfile = () => {
-    const { id } = useParams(); // Si viene de una ruta, sino usar el usuario actual
-    const CURRENT_USER_ID = 1; // Usuario hardcodeado (cambiar por el real)
-    const userId = id || CURRENT_USER_ID;
+    const { id } = useParams();
+    const { user: currentUser, isAuthenticated } = useAuth();
 
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [isEditingFavorites, setIsEditingFavorites] = useState(false);
 
-    // Estados de edición
     const [editedProfile, setEditedProfile] = useState({
         username: '',
         email: '',
         bio: ''
     });
 
-    // Estados de favoritos
     const [favoriteArtists, setFavoriteArtists] = useState([]);
     const [favoriteAlbums, setFavoriteAlbums] = useState([]);
     const [favoriteSongs, setFavoriteSongs] = useState([]);
 
-    useEffect(() => {
-        fetchUserProfile();
-    }, [userId]);
+    // Estados para el sistema de seguimiento
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followLoading, setFollowLoading] = useState(false);
 
-    const fetchUserProfile = async () => {
+    const canEdit = isAuthenticated && currentUser && user &&
+        (currentUser.userId === user.id || currentUser.userId === parseInt(id));
+
+    useEffect(() => {
+        const profileId = id || currentUser?.userId;
+        if (profileId) {
+            fetchUserProfile(profileId);
+        }
+    }, [id, currentUser]);
+
+    // Verificar si el usuario actual sigue a este perfil
+    useEffect(() => {
+        if (isAuthenticated && currentUser && user && !canEdit) {
+            checkIfFollowing();
+        }
+    }, [user, currentUser, isAuthenticated, canEdit]);
+
+    const fetchUserProfile = async (profileId) => {
         try {
             setLoading(true);
-            
-            const response = await fetch(`https://localhost:7232/api/user/${userId}/profile`);
-            
+
+            const response = await fetch(`https://127.0.0.1:7232/api/user/${profileId}/profile`, {
+                credentials: 'include'
+            });
+
             if (!response.ok) {
                 throw new Error('Error al cargar perfil');
             }
 
             const data = await response.json();
             setUser(data);
-            
+
             setEditedProfile({
                 username: data.username,
                 email: data.email,
                 bio: data.bio || ''
             });
 
-            // Cargar datos de favoritos desde Spotify
             await loadFavorites(data.favorites);
-            
+
         } catch (error) {
             console.error('Error fetching user profile:', error);
         } finally {
@@ -62,7 +78,6 @@ const UserProfile = () => {
 
     const loadFavorites = async (favorites) => {
         try {
-            // Cargar artistas favoritos
             if (favorites.artists && favorites.artists.length > 0) {
                 const artistsData = await Promise.all(
                     favorites.artists.map(id => getArtistById(id))
@@ -75,7 +90,6 @@ const UserProfile = () => {
                 })));
             }
 
-            // Cargar álbumes favoritos
             if (favorites.albums && favorites.albums.length > 0) {
                 const albumsData = await Promise.all(
                     favorites.albums.map(id => getAlbumById(id))
@@ -88,7 +102,6 @@ const UserProfile = () => {
                 })));
             }
 
-            // Cargar canciones favoritas
             if (favorites.songs && favorites.songs.length > 0) {
                 const songsData = await Promise.all(
                     favorites.songs.map(id => getTrackById(id))
@@ -105,18 +118,80 @@ const UserProfile = () => {
         }
     };
 
-    const handleProfileUpdate = async () => {
+    const checkIfFollowing = async () => {
+        if (!currentUser || !user) return;
+
         try {
-            const response = await fetch(`https://localhost:7232/api/user/${userId}/profile`, {
+            const response = await fetch(
+                `https://127.0.0.1:7232/api/user/${currentUser.userId}/is-following/${user.id}`,
+                { credentials: 'include' }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setIsFollowing(data.isFollowing);
+            }
+        } catch (error) {
+            console.error('Error checking follow status:', error);
+        }
+    };
+
+    const handleFollowToggle = async () => {
+        if (!isAuthenticated || !currentUser) {
+            alert('Debes iniciar sesión para seguir usuarios');
+            return;
+        }
+
+        if (!user) return;
+
+        setFollowLoading(true);
+
+        try {
+            const endpoint = isFollowing
+                ? `https://127.0.0.1:7232/api/user/${currentUser.userId}/unfollow/${user.id}`
+                : `https://127.0.0.1:7232/api/user/${currentUser.userId}/follow/${user.id}`;
+
+            const method = isFollowing ? 'DELETE' : 'POST';
+
+            const response = await fetch(endpoint, {
+                method: method,
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                setIsFollowing(!isFollowing);
+                // Actualizar el contador de seguidores
+                await fetchUserProfile(user.id);
+            } else {
+                const error = await response.json();
+                alert(error.error || 'Error al procesar la solicitud');
+            }
+        } catch (error) {
+            console.error('Error toggling follow:', error);
+            alert('Error de conexión');
+        } finally {
+            setFollowLoading(false);
+        }
+    };
+
+    const handleProfileUpdate = async () => {
+        if (!canEdit) {
+            alert('No tienes permiso para editar este perfil');
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://127.0.0.1:7232/api/user/${user.id}/profile`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify(editedProfile)
             });
 
             if (response.ok) {
-                await fetchUserProfile();
+                await fetchUserProfile(user.id);
                 setIsEditing(false);
             } else {
                 alert('Error al actualizar perfil');
@@ -128,16 +203,22 @@ const UserProfile = () => {
     };
 
     const handleFavoritesUpdate = async () => {
+        if (!canEdit) {
+            alert('No tienes permiso para editar este perfil');
+            return;
+        }
+
         try {
             const artistIds = favoriteArtists.map(a => a.id).join(',');
             const albumIds = favoriteAlbums.map(a => a.id).join(',');
             const songIds = favoriteSongs.map(s => s.id).join(',');
 
-            const response = await fetch(`https://localhost:7232/api/user/${userId}/favorites`, {
+            const response = await fetch(`https://127.0.0.1:7232/api/user/${user.id}/favorites`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     favoriteArtistIds: artistIds,
                     favoriteAlbumIds: albumIds,
@@ -162,7 +243,7 @@ const UserProfile = () => {
             id: item.id,
             name: item.name,
             imageUrl: item.images?.[0]?.url || item.album?.images?.[0]?.url,
-            subtitle: type === 'artist' 
+            subtitle: type === 'artist'
                 ? `${item.followers?.total?.toLocaleString() || 0} seguidores`
                 : item.artists?.map(a => a.name).join(', ') || ''
         };
@@ -206,11 +287,10 @@ const UserProfile = () => {
 
     return (
         <div className="user-profile-container">
-            {/* Header del Perfil */}
             <div className="user-profile-header">
                 <div className="profile-avatar-section">
-                    <img 
-                        src={user.profilePictureUrl || '/user_p.png'} 
+                    <img
+                        src={user.profilePictureUrl || '/user_p.png'}
                         alt={user.username}
                         className="profile-avatar-large"
                     />
@@ -222,33 +302,47 @@ const UserProfile = () => {
                             <h1 className="profile-username">{user.username}</h1>
                             <p className="profile-email">{user.email}</p>
                             {user.bio && <p className="profile-bio">{user.bio}</p>}
-                            
-                            <button 
-                                className="btn-edit-profile"
-                                onClick={() => setIsEditing(true)}
-                            >
-                                ✎ Editar Perfil
-                            </button>
+
+                            <div className="profile-actions">
+                                {canEdit && (
+                                    <button
+                                        className="btn-edit-profile"
+                                        onClick={() => setIsEditing(true)}
+                                    >
+                                        ✎ Editar Perfil
+                                    </button>
+                                )}
+
+                                {!canEdit && isAuthenticated && (
+                                    <button
+                                        className={`btn-follow ${isFollowing ? 'following' : ''}`}
+                                        onClick={handleFollowToggle}
+                                        disabled={followLoading}
+                                    >
+                                        {followLoading ? '...' : (isFollowing ? '✓ Siguiendo' : '+ Seguir')}
+                                    </button>
+                                )}
+                            </div>
                         </>
                     ) : (
                         <div className="profile-edit-form">
                             <input
                                 type="text"
                                 value={editedProfile.username}
-                                onChange={(e) => setEditedProfile({...editedProfile, username: e.target.value})}
+                                onChange={(e) => setEditedProfile({ ...editedProfile, username: e.target.value })}
                                 placeholder="Nombre de usuario"
                                 className="profile-input"
                             />
                             <input
                                 type="email"
                                 value={editedProfile.email}
-                                onChange={(e) => setEditedProfile({...editedProfile, email: e.target.value})}
+                                onChange={(e) => setEditedProfile({ ...editedProfile, email: e.target.value })}
                                 placeholder="Email"
                                 className="profile-input"
                             />
                             <textarea
                                 value={editedProfile.bio}
-                                onChange={(e) => setEditedProfile({...editedProfile, bio: e.target.value})}
+                                onChange={(e) => setEditedProfile({ ...editedProfile, bio: e.target.value })}
                                 placeholder="Bio (Cuéntanos sobre ti...)"
                                 className="profile-textarea"
                                 rows="3"
@@ -266,7 +360,6 @@ const UserProfile = () => {
                 </div>
             </div>
 
-            {/* Estadísticas */}
             <div className="user-stats">
                 <div className="stat-card">
                     <div className="stat-value">{user.statistics.totalReviews}</div>
@@ -286,18 +379,18 @@ const UserProfile = () => {
                 </div>
             </div>
 
-            {/* Sección de Favoritos */}
             <div className="favorites-section">
                 <div className="favorites-header">
-                    <h2>Mis Favoritos</h2>
-                    {!isEditingFavorites ? (
-                        <button 
+                    <h2>{canEdit ? 'Mis Favoritos' : 'Favoritos'}</h2>
+                    {canEdit && !isEditingFavorites && (
+                        <button
                             className="btn-edit-favorites"
                             onClick={() => setIsEditingFavorites(true)}
                         >
                             ✎ Editar Favoritos
                         </button>
-                    ) : (
+                    )}
+                    {canEdit && isEditingFavorites && (
                         <div className="favorites-edit-actions">
                             <button className="btn-save" onClick={handleFavoritesUpdate}>
                                 Guardar
@@ -309,10 +402,9 @@ const UserProfile = () => {
                     )}
                 </div>
 
-                {/* Artistas Favoritos */}
                 <div className="favorites-category">
                     <h3>Artistas Top 3</h3>
-                    {isEditingFavorites && (
+                    {isEditingFavorites && canEdit && (
                         <FavoritesSelector
                             type="artist"
                             onSelect={(item) => addFavorite(item, 'artist')}
@@ -325,18 +417,19 @@ const UserProfile = () => {
                             items={favoriteArtists}
                             type="artist"
                             columns={3}
-                            showRemoveButton={isEditingFavorites}
+                            showRemoveButton={isEditingFavorites && canEdit}
                             onRemove={(id) => removeFavorite(id, 'artist')}
                         />
                     ) : (
-                        <p className="no-favorites">No has seleccionado artistas favoritos</p>
+                        <p className="no-favorites">
+                            {canEdit ? 'No has seleccionado artistas favoritos' : 'No tiene artistas favoritos'}
+                        </p>
                     )}
                 </div>
 
-                {/* Álbumes Favoritos */}
                 <div className="favorites-category">
                     <h3>Álbumes Top 3</h3>
-                    {isEditingFavorites && (
+                    {isEditingFavorites && canEdit && (
                         <FavoritesSelector
                             type="album"
                             onSelect={(item) => addFavorite(item, 'album')}
@@ -349,18 +442,19 @@ const UserProfile = () => {
                             items={favoriteAlbums}
                             type="album"
                             columns={3}
-                            showRemoveButton={isEditingFavorites}
+                            showRemoveButton={isEditingFavorites && canEdit}
                             onRemove={(id) => removeFavorite(id, 'album')}
                         />
                     ) : (
-                        <p className="no-favorites">No has seleccionado álbumes favoritos</p>
+                        <p className="no-favorites">
+                            {canEdit ? 'No has seleccionado álbumes favoritos' : 'No tiene álbumes favoritos'}
+                        </p>
                     )}
                 </div>
 
-                {/* Canciones Favoritas */}
                 <div className="favorites-category">
                     <h3>Canciones Top 3</h3>
-                    {isEditingFavorites && (
+                    {isEditingFavorites && canEdit && (
                         <FavoritesSelector
                             type="song"
                             onSelect={(item) => addFavorite(item, 'song')}
@@ -373,16 +467,16 @@ const UserProfile = () => {
                             items={favoriteSongs}
                             type="song"
                             columns={3}
-                            showRemoveButton={isEditingFavorites}
+                            showRemoveButton={isEditingFavorites && canEdit}
                             onRemove={(id) => removeFavorite(id, 'song')}
                         />
                     ) : (
-                        <p className="no-favorites">No has seleccionado canciones favoritas</p>
+                        <p className="no-favorites">
+                            {canEdit ? 'No has seleccionado canciones favoritas' : 'No tiene canciones favoritas'}
+                        </p>
                     )}
                 </div>
             </div>
-
-
         </div>
     );
 };

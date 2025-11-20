@@ -1,7 +1,8 @@
-﻿using SoundTrack.Server.Models;
+﻿using Microsoft.EntityFrameworkCore;
 using SoundTrack.Server.Data;
+using SoundTrack.Server.DTOs;
+using SoundTrack.Server.Models;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.EntityFrameworkCore;
 
 namespace SoundTrack.Server.Services
 {
@@ -446,6 +447,163 @@ namespace SoundTrack.Server.Services
         {
             _context.ReviewComments.Remove(reviewComment);
             _context.SaveChanges();
+        }
+
+        //aqui empieza UserUser
+        public async Task<List<User>> GetFollowerAsync(string userId)
+        {
+            return await _context.UserUsers
+                .Where(uu => uu.FollowingId == userId)
+                .Include(uu => uu.Follower)
+                .Select(uu => uu.Follower)
+                .ToListAsync();
+        }
+
+        public async Task<List<User>> GetFollowingAsync(string userId)
+        {
+            return await _context.UserUsers
+                .Where(uu => uu.FollowerId == userId)
+                .Include(uu => uu.Following)
+                .Select(uu => uu.Following)
+                .ToListAsync();
+        }
+
+        public async Task<bool> IsFollowingAsync(string followerId, string followingId)
+        {
+            return await _context.UserUsers
+                .AnyAsync(uu => uu.FollowerId == followerId && uu.FollowingId == followingId);
+        }
+
+        public async Task<bool> FollowUserAsync(string followerId, string followingId)
+        {
+            // Verificar si ya lo sigue
+            var exists = await IsFollowingAsync(followerId, followingId);
+            if (exists)
+            {
+                return false; // Ya lo sigue
+            }
+
+            var userUser = new UserUser
+            {
+                FollowerId = followerId,
+                FollowingId = followingId,
+                FollowDate = DateTime.UtcNow
+            };
+
+            _context.UserUsers.Add(userUser);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UnfollowUserAsync(string followerId, string followingId)
+        {
+            var userUser = await _context.UserUsers
+                .FirstOrDefaultAsync(uu => uu.FollowerId == followerId && uu.FollowingId == followingId);
+
+            if (userUser == null)
+            {
+                return false; // No lo seguía
+            }
+
+            _context.UserUsers.Remove(userUser);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<int> GetFollowerCountAsync(string userId)
+        {
+            return await _context.UserUsers
+                .CountAsync(uu => uu.FollowingId == userId);
+        }
+
+        public async Task<int> GetFollowingCountAsync(string userId)
+        {
+            return await _context.UserUsers
+                .CountAsync(uu => uu.FollowerId == userId);
+        }
+
+
+        public async Task<UserProfileDto?> GetUserProfileWithStatsAsync(string userId)
+        {
+            var user = await _context.Users
+                .Include(u => u.Reviews)
+                .Include(u => u.FollowedArtists)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return null;
+
+            // Contar seguidores y siguiendo
+            var followersCount = await GetFollowerCountAsync(userId);
+            var followingCount = await GetFollowingCountAsync(userId);
+
+            return new UserProfileDto
+            {
+                Id = user.Id,
+                Username = user.UserName ?? "",
+                Email = user.Email ?? "",
+                Bio = user.Bio,
+                ProfilePictureUrl = user.ProfilePictureUrl ?? "/user_p.png",
+
+                Statistics = new UserStatisticsDto
+                {
+                    TotalReviews = user.Reviews.Count,
+                    FollowedArtists = user.FollowedArtists.Count,
+                    Followers = followersCount,
+                    Following = followingCount
+                },
+
+                Favorites = new UserFavoritesDto
+                {
+                    Artists = ParseCsvIds(user.FavoriteArtistIds),
+                    Albums = ParseCsvIds(user.FavoriteAlbumIds),
+                    Songs = ParseCsvIds(user.FavoriteSongIds)
+                }
+            };
+        }
+
+        public async Task<bool> UpdateUserProfileAsync(string userId, string? username, string? email, string? bio)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return false;
+
+            if (!string.IsNullOrEmpty(username))
+                user.UserName = username;
+
+            if (!string.IsNullOrEmpty(email))
+                user.Email = email;
+
+            user.Bio = bio;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdateUserFavoritesAsync(string userId, string? artistIds, string? albumIds, string? songIds)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return false;
+
+            user.FavoriteArtistIds = artistIds;
+            user.FavoriteAlbumIds = albumIds;
+            user.FavoriteSongIds = songIds;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        private List<string> ParseCsvIds(string? csvIds)
+        {
+            if (string.IsNullOrWhiteSpace(csvIds))
+                return new List<string>();
+
+            return csvIds.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(id => id.Trim())
+                        .ToList();
         }
 
         //Top Rated Content

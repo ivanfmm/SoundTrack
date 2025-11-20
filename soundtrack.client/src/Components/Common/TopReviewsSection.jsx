@@ -32,7 +32,7 @@ const TopReviewsSection = ({ reviews }) => {
                         
                         {/* Header */}
                         <div className="review-header">
-                            <Link to={`/user/${review.user.id}`} className="user-info">
+                            <Link to={`/profile/${review.user.id}`} className="user-info">
                                 <img 
                                     src={review.user.imageUrl || '/user_p.png'} 
                                     alt={review.user.username}

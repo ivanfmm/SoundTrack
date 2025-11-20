@@ -1,4 +1,5 @@
-﻿using SoundTrack.Server.Models;
+﻿using SoundTrack.Server.DTOs;
+using SoundTrack.Server.Models;
 
 namespace SoundTrack.Server.Services
 {
@@ -75,5 +76,25 @@ namespace SoundTrack.Server.Services
 
         //Falta logica para los Likes y Dislikes que se guarden en memoria (pensaba hacer un tipo de array que se guarde, para aumentar los datos en la base de datos todo de una)\
         //Se pueden agregar funciones para eliminar
+        // Agrega estos métodos AL FINAL de tu ISoundTrackRepository.cs
+        // Justo antes del cierre de la interfaz
+
+        //UserUser (Follow entre usuarios)
+        Task<List<User>> GetFollowerAsync(string userId);
+        Task<List<User>> GetFollowingAsync(string userId);
+        Task<bool> IsFollowingAsync(string followerId, string followingId);
+        Task<bool> FollowUserAsync(string followerId, string followingId);
+        Task<bool> UnfollowUserAsync(string followerId, string followingId);
+        Task<int> GetFollowerCountAsync(string userId);
+        Task<int> GetFollowingCountAsync(string userId);
+
+
+        // Perfil de usuario con estadísticas
+        Task<UserProfileDto?> GetUserProfileWithStatsAsync(string userId);
+        Task<bool> UpdateUserProfileAsync(string userId, string? username, string? email, string? bio);
+        Task<bool> UpdateUserFavoritesAsync(string userId, string? artistIds, string? albumIds, string? songIds);
+
+
+
     }
 }

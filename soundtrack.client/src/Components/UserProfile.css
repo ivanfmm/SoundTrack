@@ -74,6 +74,63 @@
     color: white;
     transform: scale(1.05);
 }
+/* Botón de seguir */
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btn-follow {
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    border: 2px solid var(--color-neon-green, #1db954);
+    background: transparent;
+    color: var(--color-neon-green, #1db954);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1rem;
+}
+
+    .btn-follow:hover:not(:disabled) {
+        background: var(--color-neon-green, #1db954);
+        color: #000;
+        transform: translateY(-2px);
+    }
+
+    .btn-follow.following {
+        background: var(--color-neon-green, #1db954);
+        color: #000;
+        border-color: var(--color-neon-green, #1db954);
+    }
+
+        .btn-follow.following:hover:not(:disabled) {
+            background: transparent;
+            color: var(--color-neon-green, #1db954);
+        }
+
+    .btn-follow:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+.btn-edit-profile {
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: transparent;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+    .btn-edit-profile:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
 
 /* Formulario de Edición */
 .profile-edit-form {

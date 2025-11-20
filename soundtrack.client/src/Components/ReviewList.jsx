@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { useNavigate } from 'react-router-dom'; // Agregar esto
 import StarRating from './Common/StarRating';
 import './Common/Common.css';
 
 const ReviewsList = ({ profileId, profileType }) => {
-    const { user, isAuthenticated } = useAuth(); // Usar el usuario real del contexto
+    const { user, isAuthenticated } = useAuth();
+    const navigate = useNavigate(); // Agregar esto
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -16,7 +18,6 @@ const ReviewsList = ({ profileId, profileType }) => {
         }
     }, [profileId, profileType]);
 
-    // Actualizar likes cuando el usuario cambie
     useEffect(() => {
         if (isAuthenticated && user && reviews.length > 0) {
             fetchLikeStatuses(reviews);
@@ -28,8 +29,7 @@ const ReviewsList = ({ profileId, profileType }) => {
             setLoading(true);
             setError(null);
 
-            // Sacar todas las reviews
-            const response = await fetch('https://localhost:7232/api/review', {
+            const response = await fetch('https://127.0.0.1:7232/api/review', {
                 credentials: 'include'
             });
 
@@ -39,7 +39,6 @@ const ReviewsList = ({ profileId, profileType }) => {
 
             const allReviews = await response.json();
 
-            // Filtrar reviews según de qué son
             let filteredReviews = [];
             if (profileType === 'song') {
                 filteredReviews = allReviews.filter(r => r.songProfileId === profileId);
@@ -51,7 +50,6 @@ const ReviewsList = ({ profileId, profileType }) => {
 
             setReviews(filteredReviews);
 
-            // Solo cargar likes si el usuario está autenticado
             if (isAuthenticated && user) {
                 await fetchLikeStatuses(filteredReviews);
             }
@@ -65,7 +63,6 @@ const ReviewsList = ({ profileId, profileType }) => {
     };
 
     const fetchLikeStatuses = async (reviewsList) => {
-        // Solo si hay usuario autenticado
         if (!user || !isAuthenticated) return;
 
         const statuses = {};
@@ -73,7 +70,7 @@ const ReviewsList = ({ profileId, profileType }) => {
         for (const review of reviewsList) {
             try {
                 const response = await fetch(
-                    `https://localhost:7232/api/review/${review.id}/like-status/${user.userId}`,
+                    `https://127.0.0.1:7232/api/review/${review.id}/like-status/${user.userId}`,
                     { credentials: 'include' }
                 );
 
@@ -90,14 +87,13 @@ const ReviewsList = ({ profileId, profileType }) => {
     };
 
     const handleToggleLike = async (reviewId, action) => {
-        // Verificar que el usuario esté autenticado
         if (!isAuthenticated || !user) {
             alert('Debes iniciar sesión para dar like/dislike');
             return;
         }
 
         try {
-            const response = await fetch(`https://localhost:7232/api/review/${reviewId}/${action}`, {
+            const response = await fetch(`https://127.0.0.1:7232/api/review/${reviewId}/${action}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -125,6 +121,11 @@ const ReviewsList = ({ profileId, profileType }) => {
         } catch (error) {
             console.error(`Error al dar ${action}:`, error);
         }
+    };
+
+    // Nueva función para navegar al perfil del usuario
+    const handleAuthorClick = (authorId) => {
+        navigate(`/profile/${authorId}`);
     };
 
     if (loading) return <p>Cargando reviews...</p>;
@@ -171,7 +172,11 @@ const ReviewsList = ({ profileId, profileType }) => {
                     return (
                         <div key={review.id} className="review-card">
                             <div className="review-header">
-                                <div className="review-author">
+                                <div
+                                    className="review-author"
+                                    onClick={() => handleAuthorClick(review.userId)}
+                                    style={{ cursor: 'pointer' }}
+                                >
                                     <img
                                         src="/user_p.png"
                                         alt={review.author}

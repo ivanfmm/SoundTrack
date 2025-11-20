@@ -30,7 +30,7 @@ namespace SoundTrack.Server.Controllers
                 {
                     Id = r.Id,
                     Author = r.User?.UserName ?? "Usuario Desconocido",
-                    UserId = r.UserId,
+                    UserId = r.UserId, // ✅ YA LO TIENES
                     Title = r.Title,
                     Description = r.Content,
                     Score = (int)r.score,
@@ -57,6 +57,7 @@ namespace SoundTrack.Server.Controllers
                 });
             }
         }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetReviewById(int id)
         {
@@ -66,11 +67,10 @@ namespace SoundTrack.Server.Controllers
                 return NotFound();
             }
 
-            // ✅ Return a DTO
             var reviewDto = new
             {
                 Id = review.Id,
-                UserId = review.UserId,
+                UserId = review.UserId, // ✅ YA LO TIENES
                 Author = review.User?.UserName ?? "Usuario Desconocido",
                 Title = review.Title,
                 Content = review.Content,
@@ -105,13 +105,11 @@ namespace SoundTrack.Server.Controllers
                     Dislikes = 0
                 };
 
-                // Validar que el usuario existe
                 if (review.UserId == null)
                 {
                     return BadRequest(new { error = "UserId es requerido" });
                 }
 
-                // Resto de tu lógica...
                 if (!string.IsNullOrEmpty(review.SongProfileId))
                 {
                     await _spotifyProfileService.EnsureSongProfileExists(review.SongProfileId);
@@ -130,7 +128,8 @@ namespace SoundTrack.Server.Controllers
                 var reviewResponse = new
                 {
                     Id = review.Id,
-                    UserId = review.UserId,
+                    UserId = review.UserId, // ✅ YA LO TIENES
+                    Author = review.User?.UserName ?? "Usuario",
                     Title = review.Title,
                     Content = review.Content,
                     Score = (int)review.score,
@@ -154,12 +153,7 @@ namespace SoundTrack.Server.Controllers
                 });
             }
         }
-        //[HttpPost]
-        //public async Task<IActionResult> AddReview([FromBody] Models.Review review)
-        //{
-        //    await _SoundTrackRepository.addReview(review);
-        //    return CreatedAtAction(nameof(GetReviewById), new { id = review.Id }, review);
-        //}
+
         [HttpPut("{id}")]
         public IActionResult UpdateReview(int id, [FromBody] Models.Review review)
         {
@@ -175,6 +169,7 @@ namespace SoundTrack.Server.Controllers
             _SoundTrackRepository.updateReview(review);
             return NoContent();
         }
+
         [HttpDelete("{id}")]
         public IActionResult DeleteReview(int id)
         {
@@ -190,7 +185,7 @@ namespace SoundTrack.Server.Controllers
         [HttpPut("{id}/like")]
         public async Task<IActionResult> ToggleLike(int id, [FromBody] UserActionRequest request)
         {
-            var(review, userStatus) = await _SoundTrackRepository.ToggleLike(id, request.UserId);
+            var (review, userStatus) = await _SoundTrackRepository.ToggleLike(id, request.UserId);
 
             if (review == null)
             {
@@ -199,16 +194,14 @@ namespace SoundTrack.Server.Controllers
 
             var cleanReviewDto = new
             {
-                // Propiedades que React necesita (SI SE BORRA DA ERROR 500)
                 Id = review.Id,
-                Author = review.User,
+                Author = review.User?.UserName ?? "Usuario Desconocido", 
+                UserId = review.UserId, 
                 Description = review.Content,
-                Score = review.score,
+                Score = (int)review.score,
                 PublicationDate = review.CreatedAt,
-                Likes = review.Likes,        
-                Dislikes = review.Dislikes,   
-
-                // Incluye estas por si acaso es recomendado
+                Likes = review.Likes,
+                Dislikes = review.Dislikes,
                 SongProfileId = review.SongProfileId,
                 ArtistProfileId = review.ArtistProfileId,
                 AlbumProfileId = review.AlbumProfileId
@@ -234,9 +227,10 @@ namespace SoundTrack.Server.Controllers
             var cleanReviewDto = new
             {
                 Id = review.Id,
-                Author = review.User,
+                Author = review.User?.UserName ?? "Usuario Desconocido", 
+                UserId = review.UserId, 
                 Description = review.Content,
-                Score = review.score,
+                Score = (int)review.score,
                 PublicationDate = review.CreatedAt,
                 Likes = review.Likes,
                 Dislikes = review.Dislikes,
@@ -283,7 +277,6 @@ namespace SoundTrack.Server.Controllers
                     await _SoundTrackRepository.GetReviewCountByProfile(profileId, profileType) : 0
             });
         }
-
     }
 
     public class UserActionRequest

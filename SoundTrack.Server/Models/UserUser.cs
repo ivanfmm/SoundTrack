@@ -1,4 +1,6 @@
-﻿namespace SoundTrack.Server.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace SoundTrack.Server.Models
 {
     public class UserUser
     {
@@ -12,6 +14,7 @@
         public string FollowingId { get; set; }
         public User Following { get; set; }
 
+        [Column("FollowDate")]
         public DateTime FollowDate { get; set; }
     }
 }
