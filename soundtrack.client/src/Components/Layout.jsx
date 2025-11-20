@@ -55,8 +55,8 @@ const Layout = () => {
 
     //Para login con Spotify
     const handleSpotifyLogin = () => {
-        const backendPort = "7232";
-        window.location.href = `https://127.0.0.1:${backendPort}/api/AuthSpotify/login`;
+    
+        window.location.href = '/api/AuthSpotify/login';
     };
 
     return (
