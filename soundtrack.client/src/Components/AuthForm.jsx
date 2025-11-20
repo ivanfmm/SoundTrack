@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useAuth } from './AuthContext';
 import './AuthForm.css';
 
 const AuthForm = ({ onSuccess, onCancel }) => {
+    const { login, register, checkAuthStatus } = useAuth(); // Importar funciones del contexto
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({
         username: '',
@@ -29,48 +31,36 @@ const AuthForm = ({ onSuccess, onCancel }) => {
 
         // Validaciones
         if (!isLogin && formData.password !== formData.confirmPassword) {
-            setError('Las contraseñas no coinciden');
+            setError('Las contrasenas no coinciden');
             setLoading(false);
             return;
         }
 
         try {
-            const endpoint = isLogin ? 'login' : 'register';
-            const payload = isLogin
-                ? {
-                    username: formData.username,
-                    password: formData.password,
-                    rememberMe: formData.rememberMe
-                }
-                : {
-                    username: formData.username,
-                    email: formData.email,
-                    password: formData.password,
-                    birthDay: formData.birthDay || null
-                };
+            let result;
 
-            console.log('Enviando datos:', payload);
+            if (isLogin) {
+                // Usar la funcion login del contexto
+                result = await login(
+                    formData.username,
+                    formData.password,
+                    formData.rememberMe
+                );
+            } else {
+                // Usar la funcion register del contexto
+                result = await register(
+                    formData.username,
+                    formData.email,
+                    formData.password,
+                    formData.birthDay || null
+                );
+            }
 
-            const response = await fetch(`https://localhost:7232/api/auth/${endpoint}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify(payload)
-            });
+            if (result.success) {
+                console.log('Autenticacion exitosa:', result.data);
 
-            // MEJOR DEBUG: Ver el contenido completo de la respuesta
-            const responseText = await response.text();
-            console.log('Respuesta del servidor (texto):', responseText);
-
-            if (response.ok) {
-                const data = JSON.parse(responseText);
-                console.log('Respuesta exitosa:', data);
-
-                if (onSuccess) {
-                    onSuccess(data);
-                }
+                // Verificar el estado de autenticacion para asegurar actualizacion
+                await checkAuthStatus();
 
                 // Limpiar formulario
                 setFormData({
@@ -82,30 +72,19 @@ const AuthForm = ({ onSuccess, onCancel }) => {
                     rememberMe: false
                 });
 
-                alert(isLogin ? '¡Sesión iniciada exitosamente!' : '¡Registro exitoso! Sesión iniciada.');
-            } else {
-                // Intentar parsear el error como JSON
-                let errorData;
-                try {
-                    errorData = JSON.parse(responseText);
-                } catch {
-                    errorData = { message: responseText };
+                // Llamar callback de exito
+                if (onSuccess) {
+                    onSuccess(result.data);
                 }
 
-                console.error('Error del servidor:', errorData);
-                console.error('Status Code:', response.status);
-
-                // Mostrar el error completo
-                const errorMessage = errorData.message ||
-                    errorData.title ||
-                    JSON.stringify(errorData) ||
-                    `Error ${response.status}: ${isLogin ? 'iniciar sesión' : 'registrarse'}`;
-
-                setError(errorMessage);
+                alert(isLogin ? 'Sesion iniciada exitosamente!' : 'Registro exitoso! Sesion iniciada.');
+            } else {
+                // Mostrar error del servidor
+                setError(result.error || 'Error en la autenticacion');
             }
         } catch (error) {
-            console.error('Error de red:', error);
-            setError('Error de conexión con el servidor');
+            console.error('Error inesperado:', error);
+            setError('Error de conexion con el servidor');
         } finally {
             setLoading(false);
         }
@@ -126,7 +105,7 @@ const AuthForm = ({ onSuccess, onCancel }) => {
 
     return (
         <div className="auth-form-container">
-            <h3>{isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}</h3>
+            <h3>{isLogin ? 'Iniciar Sesion' : 'Crear Cuenta'}</h3>
 
             {error && (
                 <div className="auth-error">
@@ -164,14 +143,14 @@ const AuthForm = ({ onSuccess, onCancel }) => {
                 )}
 
                 <div className="form-group">
-                    <label htmlFor="password">Contraseña:</label>
+                    <label htmlFor="password">Contrasena:</label>
                     <input
                         type="password"
                         id="password"
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        placeholder="Ingresa tu contraseña"
+                        placeholder="Ingresa tu contrasena"
                         required
                     />
                 </div>
@@ -179,14 +158,14 @@ const AuthForm = ({ onSuccess, onCancel }) => {
                 {!isLogin && (
                     <>
                         <div className="form-group">
-                            <label htmlFor="confirmPassword">Confirmar Contraseña:</label>
+                            <label htmlFor="confirmPassword">Confirmar Contrasena:</label>
                             <input
                                 type="password"
                                 id="confirmPassword"
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
-                                placeholder="Confirma tu contraseña"
+                                placeholder="Confirma tu contrasena"
                                 required
                             />
                         </div>
@@ -225,7 +204,7 @@ const AuthForm = ({ onSuccess, onCancel }) => {
                     >
                         {loading
                             ? (isLogin ? 'Iniciando...' : 'Registrando...')
-                            : (isLogin ? 'Iniciar Sesión' : 'Registrarse')
+                            : (isLogin ? 'Iniciar Sesion' : 'Registrarse')
                         }
                     </button>
                     {onCancel && (
@@ -242,14 +221,14 @@ const AuthForm = ({ onSuccess, onCancel }) => {
 
             <div className="auth-toggle">
                 <span>
-                    {isLogin ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
+                    {isLogin ? 'No tienes cuenta? ' : 'Ya tienes cuenta? '}
                 </span>
                 <button
                     type="button"
                     className="btn-toggle-mode"
                     onClick={toggleMode}
                 >
-                    {isLogin ? 'Regístrate' : 'Inicia Sesión'}
+                    {isLogin ? 'Registrate' : 'Inicia Sesion'}
                 </button>
             </div>
         </div>

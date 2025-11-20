@@ -258,16 +258,27 @@ namespace SoundTrack.Server.Services
         //Reviews
         public async Task<List<Review>> GetAllReviews()
         {
-            return await _context.Reviews.ToListAsync();
+            return await _context.Reviews
+                .Include(r => r.User)                  // ✓ Carga el usuario
+                .Include(r => r.SongProfile)           // ✓ Carga song si existe
+                .Include(r => r.ArtistProfile)         // ✓ Carga artist si existe
+                .Include(r => r.AlbumProfile)          // ✓ Carga album si existe
+                .OrderByDescending(r => r.CreatedAt)   // ✓ Ordena por fecha
+                .ToListAsync();
         }
         public async Task<Review?> GetReviewById(int id)
         {
-            return await _context.Reviews.FirstOrDefaultAsync(r => r.Id == id);
+            return await _context.Reviews
+                .Include(r => r.User)
+                .Include(r => r.SongProfile)
+                .Include(r => r.ArtistProfile)
+                .Include(r => r.AlbumProfile)
+                .FirstOrDefaultAsync(r => r.Id == id);
         }
-        public void addReview(Review review)
+        public async Task addReview(Review review)
         {
             _context.Reviews.Add(review);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
         //public async Task addReview(Models.Review review)
         //{

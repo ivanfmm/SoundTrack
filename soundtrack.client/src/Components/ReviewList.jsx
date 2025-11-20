@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 import StarRating from './Common/StarRating';
 import './Common/Common.css';
 
 const ReviewsList = ({ profileId, profileType }) => {
+    const { user, isAuthenticated } = useAuth(); // Usar el usuario real del contexto
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userLikeStatuses, setUserLikeStatuses] = useState({});
-
-    const CURRENT_USER_ID = 1; //userId hardcodeado para los likes
 
     useEffect(() => {
         if (profileId && profileType) {
@@ -16,21 +16,30 @@ const ReviewsList = ({ profileId, profileType }) => {
         }
     }, [profileId, profileType]);
 
+    // Actualizar likes cuando el usuario cambie
+    useEffect(() => {
+        if (isAuthenticated && user && reviews.length > 0) {
+            fetchLikeStatuses(reviews);
+        }
+    }, [user, isAuthenticated]);
+
     const fetchReviews = async () => {
         try {
             setLoading(true);
             setError(null);
 
             // Sacar todas las reviews
-            const response = await fetch('https://localhost:7232/api/review');
-            
+            const response = await fetch('https://localhost:7232/api/review', {
+                credentials: 'include'
+            });
+
             if (!response.ok) {
                 throw new Error('Error al cargar reviews');
             }
 
             const allReviews = await response.json();
-            
-            // Filtrar reviews segun de que son
+
+            // Filtrar reviews según de qué son
             let filteredReviews = [];
             if (profileType === 'song') {
                 filteredReviews = allReviews.filter(r => r.songProfileId === profileId);
@@ -39,10 +48,13 @@ const ReviewsList = ({ profileId, profileType }) => {
             } else if (profileType === 'album') {
                 filteredReviews = allReviews.filter(r => r.albumProfileId === profileId);
             }
-            
+
             setReviews(filteredReviews);
-            
-            await fetchLikeStatuses(filteredReviews);
+
+            // Solo cargar likes si el usuario está autenticado
+            if (isAuthenticated && user) {
+                await fetchLikeStatuses(filteredReviews);
+            }
 
         } catch (error) {
             console.error('Error al cargar reviews:', error);
@@ -51,39 +63,54 @@ const ReviewsList = ({ profileId, profileType }) => {
             setLoading(false);
         }
     };
-    
+
     const fetchLikeStatuses = async (reviewsList) => {
+        // Solo si hay usuario autenticado
+        if (!user || !isAuthenticated) return;
+
         const statuses = {};
-        
+
         for (const review of reviewsList) {
-            const response = await fetch(
-                `https://localhost:7232/api/review/${review.id}/like-status/${CURRENT_USER_ID}`
-            );
-            
-            if (response.ok) {
-                const data = await response.json();
-                statuses[review.id] = data.likeStatus;
+            try {
+                const response = await fetch(
+                    `https://localhost:7232/api/review/${review.id}/like-status/${user.userId}`,
+                    { credentials: 'include' }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    statuses[review.id] = data.likeStatus;
+                }
+            } catch (error) {
+                console.error('Error fetching like status:', error);
             }
         }
-        
+
         setUserLikeStatuses(statuses);
     };
 
     const handleToggleLike = async (reviewId, action) => {
+        // Verificar que el usuario esté autenticado
+        if (!isAuthenticated || !user) {
+            alert('Debes iniciar sesión para dar like/dislike');
+            return;
+        }
+
         try {
             const response = await fetch(`https://localhost:7232/api/review/${reviewId}/${action}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({
-                    userId: CURRENT_USER_ID
+                    userId: user.userId
                 })
             });
 
             if (response.ok) {
                 const data = await response.json();
-                setReviews(reviews.map(review => 
+                setReviews(reviews.map(review =>
                     review.id === reviewId ? data.review : review
                 ));
 
@@ -125,7 +152,7 @@ const ReviewsList = ({ profileId, profileType }) => {
             <div className="reviews-section">
                 <h2>Reviews (0)</h2>
                 <p className="no-reviews">
-                    No hay reviews. Aventurate con nosotros y se el primero en escribir una
+                    No hay reviews. Aventúrate con nosotros y sé el primero en escribir una
                 </p>
             </div>
         );
@@ -140,7 +167,7 @@ const ReviewsList = ({ profileId, profileType }) => {
                     const userStatus = userLikeStatuses[review.id] || 'None';
                     const hasLiked = userStatus === 'Like';
                     const hasDisliked = userStatus === 'Dislike';
-                    
+
                     return (
                         <div key={review.id} className="review-card">
                             <div className="review-header">
@@ -164,15 +191,19 @@ const ReviewsList = ({ profileId, profileType }) => {
                                     {new Date(review.publicationDate).toLocaleDateString('es-ES')}
                                 </span>
                                 <div className="review-actions-buttons">
-                                    <button 
+                                    <button
                                         className={`like-btn ${hasLiked ? 'active' : ''}`}
                                         onClick={() => handleToggleLike(review.id, 'like')}
+                                        disabled={!isAuthenticated}
+                                        title={!isAuthenticated ? 'Inicia sesión para dar like' : ''}
                                     >
                                         ❤️ {review.likes}
                                     </button>
-                                    <button 
+                                    <button
                                         className={`dislike-btn ${hasDisliked ? 'active' : ''}`}
-                                        onClick={() => handleToggleLike(review.id,'dislike')}
+                                        onClick={() => handleToggleLike(review.id, 'dislike')}
+                                        disabled={!isAuthenticated}
+                                        title={!isAuthenticated ? 'Inicia sesión para dar dislike' : ''}
                                     >
                                         👎 {review.dislikes}
                                     </button>

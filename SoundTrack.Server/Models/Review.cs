@@ -1,4 +1,7 @@
-﻿namespace SoundTrack.Server.Models
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace SoundTrack.Server.Models
 {
     public class Review
     {
@@ -8,13 +11,17 @@
         public string UserId { get; set; }
 
         // Propiedad de navegación hacia User
+        [ValidateNever] // ← Añade esto
+        [ForeignKey("UserId")]
         public User User { get; set; }
 
         // Foreign Keys para los perfiles (pueden ser nullables si no siempre se asocian)
         public string? ArtistProfileId { get; set; }
+        [ForeignKey("ArtistProfileId")]
         public ArtistProfile? ArtistProfile { get; set; }
 
         public string? AlbumProfileId { get; set; }
+        [ForeignKey("AlbumProfileId")]
         public AlbumProfile? AlbumProfile { get; set; }
 
         public string? SongProfileId { get; set; }

@@ -13,20 +13,18 @@ namespace SoundTrack.Server
 			AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 			var builder = WebApplication.CreateBuilder(args);
 
-			var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
-			builder.Services.AddCors(options =>
-			{
-				options.AddPolicy(name: myAllowSpecificOrigins,
-					policy =>
-					{
-						policy.WithOrigins(
-							"https://localhost:49825",
-							"https://127.0.0.1:49825")
-						.AllowAnyHeader()
-						.AllowAnyMethod()
-						.AllowCredentials();
-					});
-			});
+            var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(name: myAllowSpecificOrigins,
+                                  policy =>
+                                  {
+                                      policy.WithOrigins("https://localhost:49825")
+                                            .AllowAnyHeader()
+                                            .AllowAnyMethod()
+                                            .AllowCredentials(); // ⭐ CRÍTICO: Permite cookies
+                                  });
+            });
 
 			builder.Services.AddHttpClient();
 			builder.Services.AddScoped<ISpotifyProfileService, SpotifyProfileService>();
@@ -67,6 +65,45 @@ namespace SoundTrack.Server
 				options.Scope.Add("user-read-private");
 				options.Scope.Add("user-read-email");
 				options.Scope.Add("user-top-read");
+            builder.Services.AddDbContext<SoundTrackContext>(options =>
+                options.UseNpgsql(databaseConfig.SupabaseConnection,
+                    o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
+
+            // ⭐ Configuración de Identity
+            builder.Services.AddIdentity<User, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 6;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<SoundTrackContext>()
+            .AddDefaultTokenProviders();
+
+            // ⭐ Configuración de cookies de autenticación
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.Name = "SoundTrackAuth";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.None; // Para CORS
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Para HTTPS
+                options.ExpireTimeSpan = TimeSpan.FromDays(30); // ⭐ AUMENTADO: 30 días
+                options.SlidingExpiration = true; // ⭐ Renueva automáticamente
+
+                // ⭐ IMPORTANTE: Evita redirecciones automáticas, devuelve códigos HTTP
+                options.Events.OnRedirectToLogin = context =>
+                {
+                    context.Response.StatusCode = 401;
+                    return Task.CompletedTask;
+                };
+                options.Events.OnRedirectToAccessDenied = context =>
+                {
+                    context.Response.StatusCode = 403;
+                    return Task.CompletedTask;
+                };
+            });
 
 				options.Events.OnRedirectToAuthorizationEndpoint = context =>
 				{
@@ -96,6 +133,14 @@ namespace SoundTrack.Server
 						var services = context.HttpContext.RequestServices;
 						var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
 						var dbContext = services.GetRequiredService<SoundTrackContext>();
+            app.UseHttpsRedirection();
+
+            // ⭐ ORDEN CRÍTICO: CORS antes de Authentication
+            app.UseCors(myAllowSpecificOrigins);
+
+            // ⭐ Authentication DEBE ir antes de Authorization
+            app.UseAuthentication();
+            app.UseAuthorization();
 
 						// Buscar o crear usuario en AspNetUsers
 						var identityUser = await userManager.FindByEmailAsync(email);
