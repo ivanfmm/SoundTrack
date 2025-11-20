@@ -65,7 +65,25 @@ namespace SoundTrack.Server.Controllers
             {
                 return NotFound();
             }
-            return  Ok(review);
+
+            // ✅ Return a DTO
+            var reviewDto = new
+            {
+                Id = review.Id,
+                UserId = review.UserId,
+                Author = review.User?.UserName ?? "Usuario Desconocido",
+                Title = review.Title,
+                Content = review.Content,
+                Score = (int)review.score,
+                SongProfileId = review.SongProfileId,
+                ArtistProfileId = review.ArtistProfileId,
+                AlbumProfileId = review.AlbumProfileId,
+                CreatedAt = review.CreatedAt,
+                Likes = review.Likes,
+                Dislikes = review.Dislikes
+            };
+
+            return Ok(reviewDto);
         }
 
         [HttpPost]
@@ -109,7 +127,22 @@ namespace SoundTrack.Server.Controllers
 
                 await _SoundTrackRepository.addReview(review);
 
-                return CreatedAtAction(nameof(GetReviewById), new { id = review.Id }, review);
+                var reviewResponse = new
+                {
+                    Id = review.Id,
+                    UserId = review.UserId,
+                    Title = review.Title,
+                    Content = review.Content,
+                    Score = (int)review.score,
+                    SongProfileId = review.SongProfileId,
+                    ArtistProfileId = review.ArtistProfileId,
+                    AlbumProfileId = review.AlbumProfileId,
+                    CreatedAt = review.CreatedAt,
+                    Likes = review.Likes,
+                    Dislikes = review.Dislikes
+                };
+
+                return CreatedAtAction(nameof(GetReviewById), new { id = review.Id }, reviewResponse);
             }
             catch (Exception ex)
             {

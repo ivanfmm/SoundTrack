@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SoundTrack.Server.Data;
@@ -12,9 +13,11 @@ using SoundTrack.Server.Data;
 namespace SoundTrack.Server.Migrations
 {
     [DbContext(typeof(SoundTrackContext))]
-    partial class SoundTrackContextModelSnapshot : ModelSnapshot
+    [Migration("20251120145908_fixreview2")]
+    partial class fixreview2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -312,7 +315,13 @@ namespace SoundTrack.Server.Migrations
                     b.Property<string>("AlbumProfileId")
                         .HasColumnType("text");
 
+                    b.Property<string>("AlbumProfileId1")
+                        .HasColumnType("text");
+
                     b.Property<string>("ArtistProfileId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ArtistProfileId1")
                         .HasColumnType("text");
 
                     b.Property<string>("Content")
@@ -337,6 +346,9 @@ namespace SoundTrack.Server.Migrations
                     b.Property<string>("SongProfileId")
                         .HasColumnType("text");
 
+                    b.Property<string>("SongProfileId1")
+                        .HasColumnType("text");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
@@ -355,11 +367,17 @@ namespace SoundTrack.Server.Migrations
 
                     b.HasIndex("AlbumProfileId");
 
+                    b.HasIndex("AlbumProfileId1");
+
                     b.HasIndex("ArtistProfileId");
+
+                    b.HasIndex("ArtistProfileId1");
 
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("SongProfileId");
+
+                    b.HasIndex("SongProfileId1");
 
                     b.HasIndex("UserId");
 
@@ -730,19 +748,31 @@ namespace SoundTrack.Server.Migrations
             modelBuilder.Entity("SoundTrack.Server.Models.Review", b =>
                 {
                     b.HasOne("SoundTrack.Server.Models.AlbumProfile", "AlbumProfile")
-                        .WithMany("reviews")
+                        .WithMany()
                         .HasForeignKey("AlbumProfileId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("SoundTrack.Server.Models.ArtistProfile", "ArtistProfile")
+                    b.HasOne("SoundTrack.Server.Models.AlbumProfile", null)
                         .WithMany("reviews")
+                        .HasForeignKey("AlbumProfileId1");
+
+                    b.HasOne("SoundTrack.Server.Models.ArtistProfile", "ArtistProfile")
+                        .WithMany()
                         .HasForeignKey("ArtistProfileId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("SoundTrack.Server.Models.SongProfile", "SongProfile")
+                    b.HasOne("SoundTrack.Server.Models.ArtistProfile", null)
                         .WithMany("reviews")
+                        .HasForeignKey("ArtistProfileId1");
+
+                    b.HasOne("SoundTrack.Server.Models.SongProfile", "SongProfile")
+                        .WithMany()
                         .HasForeignKey("SongProfileId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("SoundTrack.Server.Models.SongProfile", null)
+                        .WithMany("reviews")
+                        .HasForeignKey("SongProfileId1");
 
                     b.HasOne("SoundTrack.Server.Models.User", "User")
                         .WithMany("Reviews")
