@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using SoundTrack.Server.Data;
+using SoundTrack.Server.Models;
 using SoundTrack.Server.Services;
 using System.Configuration;
 using Microsoft.AspNetCore.Authentication;
@@ -61,6 +62,18 @@ namespace SoundTrack.Server
 				options.ClientSecret = builder.Configuration["Spotify:ClientSecret"];
 				options.CallbackPath = "/signin-spotify";
 				options.SaveTokens = true;
+            // ⭐ AGREGADO: Configuración de Identity
+            builder.Services.AddIdentity<User, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 6;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<SoundTrackContext>()
+            .AddDefaultTokenProviders();
 
 				options.Scope.Add("user-read-private");
 				options.Scope.Add("user-read-email");

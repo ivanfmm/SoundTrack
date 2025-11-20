@@ -13,8 +13,8 @@ using SoundTrack.Server.Data;
 namespace SoundTrack.Server.Migrations
 {
     [DbContext(typeof(SoundTrackContext))]
-    [Migration("20251117041651_AddReviewLikesTable")]
-    partial class AddReviewLikesTable
+    [Migration("20251120012740_AddBioColumnToUser")]
+    partial class AddBioColumnToUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -56,6 +56,138 @@ namespace SoundTrack.Server.Migrations
                     b.ToTable("ArtistProfileSongProfile");
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetRoleClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserClaims", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("LoginProvider", "ProviderKey");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AspNetUserLogins", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RoleId")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text");
+
+                    b.HasKey("UserId", "LoginProvider", "Name");
+
+                    b.ToTable("AspNetUserTokens", (string)null);
+                });
+
             modelBuilder.Entity("SoundTrack.Server.Models.AlbumProfile", b =>
                 {
                     b.Property<string>("Id")
@@ -78,14 +210,14 @@ namespace SoundTrack.Server.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("PublicationDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.PrimitiveCollection<List<string>>("Tags")
                         .IsRequired()
                         .HasColumnType("text[]");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
 
                     b.Property<int>("score")
                         .HasColumnType("integer");
@@ -95,6 +227,39 @@ namespace SoundTrack.Server.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("AlbumProfiles");
+                });
+
+            modelBuilder.Entity("SoundTrack.Server.Models.ArtistFollow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AlbumProfileId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ArtistProfileId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("FollowDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlbumProfileId");
+
+                    b.HasIndex("ArtistProfileId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ArtistFollows");
                 });
 
             modelBuilder.Entity("SoundTrack.Server.Models.ArtistProfile", b =>
@@ -119,14 +284,14 @@ namespace SoundTrack.Server.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("PublicationDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.PrimitiveCollection<List<string>>("Tags")
                         .IsRequired()
                         .HasColumnType("text[]");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
 
                     b.Property<int>("score")
                         .HasColumnType("integer");
@@ -167,13 +332,14 @@ namespace SoundTrack.Server.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("PublicationDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("SongProfileId")
                         .HasColumnType("text");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("score")
                         .HasColumnType("integer");
@@ -214,10 +380,11 @@ namespace SoundTrack.Server.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("PublicationDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -233,7 +400,7 @@ namespace SoundTrack.Server.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("LikeType")
                         .HasColumnType("integer");
@@ -242,10 +409,11 @@ namespace SoundTrack.Server.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -282,14 +450,14 @@ namespace SoundTrack.Server.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("PublicationDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.PrimitiveCollection<List<string>>("Tags")
                         .IsRequired()
                         .HasColumnType("text[]");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
 
                     b.Property<int>("score")
                         .HasColumnType("integer");
@@ -305,50 +473,111 @@ namespace SoundTrack.Server.Migrations
 
             modelBuilder.Entity("SoundTrack.Server.Models.User", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<string>("Bio")
+                        .HasColumnType("text");
 
-                    b.Property<DateTime>("BirthDay")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("BirthDay")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreateDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("FavoriteAlbumIds")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("FavoriteArtistIds")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FavoriteSongIds")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("ProfilePictureUrl")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Username")
-                        .IsRequired()
+                    b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
-                    b.Property<string>("salt")
-                        .IsRequired()
+                    b.Property<string>("SpotifyAccessToken")
                         .HasColumnType("text");
+
+                    b.Property<string>("SpotifyRefreshToken")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("UserName")
+                        .IsUnique();
+
+                    b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("UserUser", b =>
                 {
-                    b.Property<int>("FollowersId")
-                        .HasColumnType("integer");
+                    b.Property<string>("FollowersId")
+                        .HasColumnType("text");
 
-                    b.Property<int>("FollowingId")
-                        .HasColumnType("integer");
+                    b.Property<string>("FollowingId")
+                        .HasColumnType("text");
 
                     b.HasKey("FollowersId", "FollowingId");
 
@@ -387,11 +616,85 @@ namespace SoundTrack.Server.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
+                {
+                    b.HasOne("SoundTrack.Server.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
+                {
+                    b.HasOne("SoundTrack.Server.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SoundTrack.Server.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
+                {
+                    b.HasOne("SoundTrack.Server.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SoundTrack.Server.Models.AlbumProfile", b =>
                 {
                     b.HasOne("SoundTrack.Server.Models.User", null)
                         .WithMany("TrendingAlbums")
                         .HasForeignKey("UserId");
+                });
+
+            modelBuilder.Entity("SoundTrack.Server.Models.ArtistFollow", b =>
+                {
+                    b.HasOne("SoundTrack.Server.Models.AlbumProfile", null)
+                        .WithMany("Followers")
+                        .HasForeignKey("AlbumProfileId");
+
+                    b.HasOne("SoundTrack.Server.Models.ArtistProfile", "ArtistProfile")
+                        .WithMany()
+                        .HasForeignKey("ArtistProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SoundTrack.Server.Models.User", "User")
+                        .WithMany("FollowedArtists")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ArtistProfile");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SoundTrack.Server.Models.ArtistProfile", b =>
@@ -473,6 +776,8 @@ namespace SoundTrack.Server.Migrations
 
             modelBuilder.Entity("SoundTrack.Server.Models.AlbumProfile", b =>
                 {
+                    b.Navigation("Followers");
+
                     b.Navigation("Tracks");
 
                     b.Navigation("reviews");
@@ -495,6 +800,8 @@ namespace SoundTrack.Server.Migrations
 
             modelBuilder.Entity("SoundTrack.Server.Models.User", b =>
                 {
+                    b.Navigation("FollowedArtists");
+
                     b.Navigation("ReviewLikes");
 
                     b.Navigation("Reviews");

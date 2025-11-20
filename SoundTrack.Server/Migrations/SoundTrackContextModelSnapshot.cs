@@ -104,70 +104,6 @@ namespace SoundTrack.Server.Migrations
                     b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
-
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
-
-                    b.ToTable("AspNetUsers", (string)null);
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
                     b.Property<int>("Id")
@@ -277,8 +213,8 @@ namespace SoundTrack.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text[]");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
 
                     b.Property<int>("score")
                         .HasColumnType("integer");
@@ -308,8 +244,9 @@ namespace SoundTrack.Server.Migrations
                     b.Property<DateTime>("FollowDate")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -317,7 +254,8 @@ namespace SoundTrack.Server.Migrations
 
                     b.HasIndex("ArtistProfileId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "ArtistProfileId")
+                        .IsUnique();
 
                     b.ToTable("ArtistFollows");
                 });
@@ -350,8 +288,8 @@ namespace SoundTrack.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text[]");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
 
                     b.Property<int>("score")
                         .HasColumnType("integer");
@@ -374,16 +312,21 @@ namespace SoundTrack.Server.Migrations
                     b.Property<string>("AlbumProfileId")
                         .HasColumnType("text");
 
+                    b.Property<string>("AlbumProfileId1")
+                        .HasColumnType("text");
+
                     b.Property<string>("ArtistProfileId")
                         .HasColumnType("text");
 
-                    b.Property<string>("Author")
+                    b.Property<string>("ArtistProfileId1")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("Dislikes")
                         .HasColumnType("integer");
@@ -391,14 +334,22 @@ namespace SoundTrack.Server.Migrations
                     b.Property<int>("Likes")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("PublicationDate")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<string>("SongProfileId")
                         .HasColumnType("text");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("SongProfileId1")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("score")
                         .HasColumnType("integer");
@@ -407,9 +358,17 @@ namespace SoundTrack.Server.Migrations
 
                     b.HasIndex("AlbumProfileId");
 
+                    b.HasIndex("AlbumProfileId1");
+
                     b.HasIndex("ArtistProfileId");
 
+                    b.HasIndex("ArtistProfileId1");
+
+                    b.HasIndex("CreatedAt");
+
                     b.HasIndex("SongProfileId");
+
+                    b.HasIndex("SongProfileId1");
 
                     b.HasIndex("UserId");
 
@@ -424,27 +383,28 @@ namespace SoundTrack.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Author")
+                    b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Dislikes")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Likes")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("PublicationDate")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("ReviewId")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ReviewId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("ReviewComments");
                 });
@@ -469,14 +429,16 @@ namespace SoundTrack.Server.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ReviewId");
-
                     b.HasIndex("UserId");
+
+                    b.HasIndex("ReviewId", "UserId")
+                        .IsUnique();
 
                     b.ToTable("ReviewLikes");
                 });
@@ -513,8 +475,8 @@ namespace SoundTrack.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text[]");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
 
                     b.Property<int>("score")
                         .HasColumnType("integer");
@@ -530,11 +492,11 @@ namespace SoundTrack.Server.Migrations
 
             modelBuilder.Entity("SoundTrack.Server.Models.User", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Bio")
                         .HasColumnType("text");
@@ -542,12 +504,19 @@ namespace SoundTrack.Server.Migrations
                     b.Property<DateTime?>("BirthDay")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("FavoriteAlbumIds")
                         .IsRequired()
@@ -561,11 +530,33 @@ namespace SoundTrack.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("IdentityUserId")
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("ProfilePictureUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
                     b.Property<string>("SpotifyAccessToken")
@@ -574,34 +565,60 @@ namespace SoundTrack.Server.Migrations
                     b.Property<string>("SpotifyRefreshToken")
                         .HasColumnType("text");
 
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("Username")
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("UserName")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("UserUser", b =>
+            modelBuilder.Entity("SoundTrack.Server.Models.UserFollow", b =>
                 {
-                    b.Property<int>("FollowersId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    b.Property<int>("FollowingId")
-                        .HasColumnType("integer");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.HasKey("FollowersId", "FollowingId");
+                    b.Property<DateTime>("FollowDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("FollowerId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FollowingId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("FollowingId");
 
-                    b.ToTable("UserUser");
+                    b.HasIndex("FollowerId", "FollowingId")
+                        .IsUnique();
+
+                    b.ToTable("UserFollows");
                 });
 
             modelBuilder.Entity("AlbumProfileArtistProfile", b =>
@@ -645,7 +662,7 @@ namespace SoundTrack.Server.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("SoundTrack.Server.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -654,7 +671,7 @@ namespace SoundTrack.Server.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("SoundTrack.Server.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -669,7 +686,7 @@ namespace SoundTrack.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("SoundTrack.Server.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -678,7 +695,7 @@ namespace SoundTrack.Server.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                    b.HasOne("SoundTrack.Server.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -724,23 +741,65 @@ namespace SoundTrack.Server.Migrations
 
             modelBuilder.Entity("SoundTrack.Server.Models.Review", b =>
                 {
+                    b.HasOne("SoundTrack.Server.Models.AlbumProfile", "AlbumProfile")
+                        .WithMany()
+                        .HasForeignKey("AlbumProfileId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("SoundTrack.Server.Models.AlbumProfile", null)
                         .WithMany("reviews")
-                        .HasForeignKey("AlbumProfileId");
+                        .HasForeignKey("AlbumProfileId1");
+
+                    b.HasOne("SoundTrack.Server.Models.ArtistProfile", "ArtistProfile")
+                        .WithMany()
+                        .HasForeignKey("ArtistProfileId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SoundTrack.Server.Models.ArtistProfile", null)
                         .WithMany("reviews")
-                        .HasForeignKey("ArtistProfileId");
+                        .HasForeignKey("ArtistProfileId1");
+
+                    b.HasOne("SoundTrack.Server.Models.SongProfile", "SongProfile")
+                        .WithMany()
+                        .HasForeignKey("SongProfileId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SoundTrack.Server.Models.SongProfile", null)
                         .WithMany("reviews")
-                        .HasForeignKey("SongProfileId");
+                        .HasForeignKey("SongProfileId1");
 
-                    b.HasOne("SoundTrack.Server.Models.User", null)
+                    b.HasOne("SoundTrack.Server.Models.User", "User")
                         .WithMany("Reviews")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("AlbumProfile");
+
+                    b.Navigation("ArtistProfile");
+
+                    b.Navigation("SongProfile");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SoundTrack.Server.Models.ReviewComment", b =>
+                {
+                    b.HasOne("SoundTrack.Server.Models.Review", "Review")
+                        .WithMany("Comments")
+                        .HasForeignKey("ReviewId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SoundTrack.Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Review");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SoundTrack.Server.Models.ReviewLike", b =>
@@ -777,19 +836,23 @@ namespace SoundTrack.Server.Migrations
                     b.Navigation("Album");
                 });
 
-            modelBuilder.Entity("UserUser", b =>
+            modelBuilder.Entity("SoundTrack.Server.Models.UserFollow", b =>
                 {
-                    b.HasOne("SoundTrack.Server.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("FollowersId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("SoundTrack.Server.Models.User", "Follower")
+                        .WithMany("Following")
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SoundTrack.Server.Models.User", null)
-                        .WithMany()
+                    b.HasOne("SoundTrack.Server.Models.User", "Following")
+                        .WithMany("Followers")
                         .HasForeignKey("FollowingId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Follower");
+
+                    b.Navigation("Following");
                 });
 
             modelBuilder.Entity("SoundTrack.Server.Models.AlbumProfile", b =>
@@ -808,6 +871,8 @@ namespace SoundTrack.Server.Migrations
 
             modelBuilder.Entity("SoundTrack.Server.Models.Review", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("ReviewLikes");
                 });
 
@@ -819,6 +884,10 @@ namespace SoundTrack.Server.Migrations
             modelBuilder.Entity("SoundTrack.Server.Models.User", b =>
                 {
                     b.Navigation("FollowedArtists");
+
+                    b.Navigation("Followers");
+
+                    b.Navigation("Following");
 
                     b.Navigation("ReviewLikes");
 
