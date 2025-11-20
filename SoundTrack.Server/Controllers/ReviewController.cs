@@ -21,8 +21,41 @@ namespace SoundTrack.Server.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllReviews()
         {
-            var reviews = await _SoundTrackRepository.GetAllReviews();
-            return Ok(reviews);
+            try
+            {
+                var reviews = await _SoundTrackRepository.GetAllReviews();
+
+                // Mapear a DTOs para evitar referencias circulares
+                var reviewsDto = reviews.Select(r => new
+                {
+                    Id = r.Id,
+                    Author = r.User?.UserName ?? "Usuario Desconocido",
+                    UserId = r.UserId,
+                    Title = r.Title,
+                    Description = r.Content,
+                    Score = (int)r.score,
+                    PublicationDate = r.CreatedAt,
+                    Likes = r.Likes,
+                    Dislikes = r.Dislikes,
+                    SongProfileId = r.SongProfileId,
+                    ArtistProfileId = r.ArtistProfileId,
+                    AlbumProfileId = r.AlbumProfileId
+                }).ToList();
+
+                return Ok(reviewsDto);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR al obtener reviews: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
+                return StatusCode(500, new
+                {
+                    error = "Error al obtener las reviews",
+                    message = ex.Message,
+                    innerException = ex.InnerException?.Message
+                });
+            }
         }
         [HttpGet("{id}")]
         public async Task<IActionResult> GetReviewById(int id)
@@ -36,39 +69,52 @@ namespace SoundTrack.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddReview([FromBody] Models.Review review)
+        public async Task<IActionResult> AddReview([FromBody] ReviewDto reviewDto)
         {
             try
             {
-                review.CreatedAt = DateTime.UtcNow;
-                review.Likes = 0;
-                review.Dislikes = 0;
-                // Revisa si los perfiles existen
+                var review = new Review
+                {
+                    UserId = reviewDto.UserId,
+                    Title = reviewDto.Title,
+                    Content = reviewDto.Content,
+                    score = (ReviewScore)reviewDto.Score,
+                    SongProfileId = reviewDto.SongProfileId,
+                    ArtistProfileId = reviewDto.ArtistProfileId,
+                    AlbumProfileId = reviewDto.AlbumProfileId,
+                    CreatedAt = DateTime.UtcNow,
+                    Likes = 0,
+                    Dislikes = 0
+                };
 
+                // Validar que el usuario existe
+                if (review.UserId == null)
+                {
+                    return BadRequest(new { error = "UserId es requerido" });
+                }
+
+                // Resto de tu lógica...
                 if (!string.IsNullOrEmpty(review.SongProfileId))
                 {
-                    // Asegurar que el SongProfile existe (y sus dependencias)
                     await _spotifyProfileService.EnsureSongProfileExists(review.SongProfileId);
                 }
                 else if (!string.IsNullOrEmpty(review.ArtistProfileId))
                 {
-                    // Asegurar que el ArtistProfile existe
                     await _spotifyProfileService.EnsureArtistProfileExists(review.ArtistProfileId);
                 }
                 else if (!string.IsNullOrEmpty(review.AlbumProfileId))
                 {
-                    // Asegurar que el AlbumProfile existe
                     await _spotifyProfileService.EnsureAlbumProfileExists(review.AlbumProfileId);
                 }
 
-                // Ahora sí, crear la review
                 await _SoundTrackRepository.addReview(review);
 
                 return CreatedAtAction(nameof(GetReviewById), new { id = review.Id }, review);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { 
+                return BadRequest(new
+                {
                     error = "Error al crear la review",
                     message = ex.Message,
                     innerException = ex.InnerException?.Message

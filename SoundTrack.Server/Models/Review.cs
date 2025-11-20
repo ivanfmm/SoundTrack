@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SoundTrack.Server.Models
 {
@@ -10,6 +11,7 @@ namespace SoundTrack.Server.Models
         public string UserId { get; set; }
 
         // Propiedad de navegación hacia User
+        [ValidateNever] // ← Añade esto
         [ForeignKey("UserId")]
         public User User { get; set; }
 
