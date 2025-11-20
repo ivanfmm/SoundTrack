@@ -1,83 +1,48 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using SoundTrack.Server.Data;
 
 namespace SoundTrack.Server.Models
 {
-    public class User : IdentityUser
-    {
-     
-        public string? Bio { get; set; }
-        public string? SpotifyAccessToken { get; set; }
-        public string? SpotifyRefreshToken { get; set; }
-        public string? ProfilePictureUrl { get; set; }
-        public DateTime? BirthDay { get; set; }
-        public DateTime CreateDate { get; set; }
+	public class User : IdentityUser
+	{
+		// ===== PROPIEDADES PERSONALIZADAS =====
 
-        public List<UserUser> Followers { get; set; }
-        public List<UserUser> Following { get; set; }
-        public List<Review> Reviews { get; set; }
+		// Email ya existe en IdentityUser, pero lo redefinimos para evitar warnings
+		public new string? Email
+		{
+			get => base.Email;
+			set => base.Email = value;
+		}
 
-        public string? FavoriteArtistIds { get; set; } 
-        public string? FavoriteAlbumIds { get; set; }  
-        public string? FavoriteSongIds { get; set; }
-        //Trending Tracks usando los id separados por ,
-        public List<SongProfile> TrendingTracks { get; set; }
-        public List<ArtistProfile> TrendingArtists { get; set; }
-        public List<AlbumProfile> TrendingAlbums { get; set; }
+		public string? Bio { get; set; }
+		public string? ProfilePictureUrl { get; set; }
+		public DateTime? BirthDay { get; set; }
+		public DateTime CreateDate { get; set; } = DateTime.UtcNow;
 
-        public List<ReviewLike> ReviewLikes { get; set; } = new List<ReviewLike>();
-        public List<ArtistFollow> FollowedArtists { get; set; } = new List<ArtistFollow>();
+		// Spotify tokens
+		public string? SpotifyAccessToken { get; set; }
+		public string? SpotifyRefreshToken { get; set; }
 
-        public void FollowUser(UserUser userToFollow)
-        {
-            if (Following == null)
-            {
-                Following = new List<UserUser>();
-            }
-            if (!Following.Contains(userToFollow))
-            {
-                Following.Add(userToFollow);
-            }
-        }
+		// Favoritos (CSV o JSON)
+		public string? FavoriteArtistIds { get; set; }
+		public string? FavoriteAlbumIds { get; set; }
+		public string? FavoriteSongIds { get; set; }
 
-        public void UnfollowUser(UserUser userToUnfollow)
-        {
-            if (Following != null && Following.Contains(userToUnfollow))
-            {
-                Following.Remove(userToUnfollow);
-            }
-        }
+		// ===== RELACIONES =====
 
-        // Métodos helper actualizados
-        public void FollowUser(User userToFollow, SoundTrackContext context)
-        {
-            if (userToFollow == null || userToFollow.Id == this.Id)
-                return;
+		// Follows entre usuarios
+		public ICollection<UserUser> Followers { get; set; } = new List<UserUser>();
+		public ICollection<UserUser> Following { get; set; } = new List<UserUser>();
 
-            var existingFollow = context.UserFollows
-                .FirstOrDefault(uf => uf.FollowerId == this.Id && uf.FollowingId == userToFollow.Id);
+		// Reviews y likes
+		public ICollection<Review> Reviews { get; set; } = new List<Review>();
+		public ICollection<ReviewLike> ReviewLikes { get; set; } = new List<ReviewLike>();
 
-            if (existingFollow == null)
-            {
-                var newFollow = new UserUser
-                {
-                    FollowerId = this.Id,
-                    FollowingId = userToFollow.Id,
-                    FollowDate = DateTime.UtcNow
-                };
-                context.UserFollows.Add(newFollow);
-            }
-        }
+		// Artistas seguidos
+		public ICollection<ArtistFollow> FollowedArtists { get; set; } = new List<ArtistFollow>();
 
-        public void UnfollowUser(User userToUnfollow, SoundTrackContext context)
-        {
-            var follow = context.UserFollows
-                .FirstOrDefault(uf => uf.FollowerId == this.Id && uf.FollowingId == userToUnfollow.Id);
-
-            if (follow != null)
-            {
-                context.UserFollows.Remove(follow);
-            }
-        }
-    }
+		// Trending items (muchos a muchos, necesitarás configurarlos en DbContext)
+		public ICollection<SongProfile> TrendingTracks { get; set; } = new List<SongProfile>();
+		public ICollection<ArtistProfile> TrendingArtists { get; set; } = new List<ArtistProfile>();
+		public ICollection<AlbumProfile> TrendingAlbums { get; set; } = new List<AlbumProfile>();
+	}
 }

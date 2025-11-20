@@ -53,6 +53,12 @@ const Layout = () => {
         setShowAuthModal(false);
     };
 
+    //Para login con Spotify
+    const handleSpotifyLogin = () => {
+    
+        window.location.href = '/api/AuthSpotify/login';
+    };
+
     return (
         <div className="app-container">
             <header className="app-header">
@@ -139,6 +145,37 @@ const Layout = () => {
                             onSuccess={handleAuthSuccess}
                             onCancel={handleCloseAuthModal}
                         />
+
+                        <div style={{
+                            marginTop: '20px',
+                            paddingTop: '20px',
+                            borderTop: '1px solid #444', 
+                            textAlign: 'center'
+                        }}>
+                            <p style={{ marginBottom: '10px', fontSize: '0.9em', color: '#888' }}>O continua con</p>
+                            <button
+                                onClick={handleSpotifyLogin}
+                                style={{
+                                    backgroundColor: '#1DB954', 
+                                    color: 'white',
+                                    padding: '12px 24px',
+                                    border: 'none',
+                                    borderRadius: '50px',
+                                    fontSize: '16px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '100%',
+                                    transition: 'transform 0.2s'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                                <span style={{ marginRight: '10px' }}></span> Iniciar Sesion con Spotify
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
