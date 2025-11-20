@@ -31,7 +31,7 @@ const AuthForm = ({ onSuccess, onCancel }) => {
 
         // Validaciones
         if (!isLogin && formData.password !== formData.confirmPassword) {
-            setError('Las contraseñas no coinciden');
+            setError('Las contrasenas no coinciden');
             setLoading(false);
             return;
         }
@@ -40,14 +40,14 @@ const AuthForm = ({ onSuccess, onCancel }) => {
             let result;
 
             if (isLogin) {
-                // Usar la función login del contexto
+                // Usar la funcion login del contexto
                 result = await login(
                     formData.username,
                     formData.password,
                     formData.rememberMe
                 );
             } else {
-                // Usar la función register del contexto
+                // Usar la funcion register del contexto
                 result = await register(
                     formData.username,
                     formData.email,
@@ -57,9 +57,9 @@ const AuthForm = ({ onSuccess, onCancel }) => {
             }
 
             if (result.success) {
-                console.log('Autenticación exitosa:', result.data);
+                console.log('Autenticacion exitosa:', result.data);
 
-                // Verificar el estado de autenticación para asegurar actualización
+                // Verificar el estado de autenticacion para asegurar actualizacion
                 await checkAuthStatus();
 
                 // Limpiar formulario
@@ -72,19 +72,19 @@ const AuthForm = ({ onSuccess, onCancel }) => {
                     rememberMe: false
                 });
 
-                // Llamar callback de éxito
+                // Llamar callback de exito
                 if (onSuccess) {
                     onSuccess(result.data);
                 }
 
-                alert(isLogin ? '¡Sesión iniciada exitosamente!' : '¡Registro exitoso! Sesión iniciada.');
+                alert(isLogin ? 'Sesion iniciada exitosamente!' : 'Registro exitoso! Sesion iniciada.');
             } else {
                 // Mostrar error del servidor
-                setError(result.error || 'Error en la autenticación');
+                setError(result.error || 'Error en la autenticacion');
             }
         } catch (error) {
             console.error('Error inesperado:', error);
-            setError('Error de conexión con el servidor');
+            setError('Error de conexion con el servidor');
         } finally {
             setLoading(false);
         }
@@ -105,7 +105,7 @@ const AuthForm = ({ onSuccess, onCancel }) => {
 
     return (
         <div className="auth-form-container">
-            <h3>{isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}</h3>
+            <h3>{isLogin ? 'Iniciar Sesion' : 'Crear Cuenta'}</h3>
 
             {error && (
                 <div className="auth-error">
@@ -143,14 +143,14 @@ const AuthForm = ({ onSuccess, onCancel }) => {
                 )}
 
                 <div className="form-group">
-                    <label htmlFor="password">Contraseña:</label>
+                    <label htmlFor="password">Contrasena:</label>
                     <input
                         type="password"
                         id="password"
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        placeholder="Ingresa tu contraseña"
+                        placeholder="Ingresa tu contrasena"
                         required
                     />
                 </div>
@@ -158,14 +158,14 @@ const AuthForm = ({ onSuccess, onCancel }) => {
                 {!isLogin && (
                     <>
                         <div className="form-group">
-                            <label htmlFor="confirmPassword">Confirmar Contraseña:</label>
+                            <label htmlFor="confirmPassword">Confirmar Contrasena:</label>
                             <input
                                 type="password"
                                 id="confirmPassword"
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
-                                placeholder="Confirma tu contraseña"
+                                placeholder="Confirma tu contrasena"
                                 required
                             />
                         </div>
@@ -204,7 +204,7 @@ const AuthForm = ({ onSuccess, onCancel }) => {
                     >
                         {loading
                             ? (isLogin ? 'Iniciando...' : 'Registrando...')
-                            : (isLogin ? 'Iniciar Sesión' : 'Registrarse')
+                            : (isLogin ? 'Iniciar Sesion' : 'Registrarse')
                         }
                     </button>
                     {onCancel && (
@@ -221,14 +221,14 @@ const AuthForm = ({ onSuccess, onCancel }) => {
 
             <div className="auth-toggle">
                 <span>
-                    {isLogin ? '¿No tienes cuenta? ' : '¿Ya tienes cuenta? '}
+                    {isLogin ? 'No tienes cuenta? ' : 'Ya tienes cuenta? '}
                 </span>
                 <button
                     type="button"
                     className="btn-toggle-mode"
                     onClick={toggleMode}
                 >
-                    {isLogin ? 'Regístrate' : 'Inicia Sesión'}
+                    {isLogin ? 'Registrate' : 'Inicia Sesion'}
                 </button>
             </div>
         </div>

@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    // Verificar si hay sesión activa al cargar la app
+    // Verificar si hay sesion activa al cargar la app
     useEffect(() => {
         checkAuthStatus();
     }, []);
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
                 setIsAuthenticated(false);
             }
         } catch (error) {
-            console.error('Error al verificar autenticación:', error);
+            console.error('Error al verificar autenticacion:', error);
             setUser(null);
             setIsAuthenticated(false);
         } finally {
@@ -62,11 +62,11 @@ export const AuthProvider = ({ children }) => {
                 return { success: true, data: userData };
             } else {
                 const errorData = await response.json();
-                return { success: false, error: errorData.message || 'Error al iniciar sesión' };
+                return { success: false, error: errorData.message || 'Error al iniciar sesion' };
             }
         } catch (error) {
             console.error('Error en login:', error);
-            return { success: false, error: 'Error de conexión con el servidor' };
+            return { success: false, error: 'Error de conexion con el servidor' };
         }
     };
 
@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }) => {
             }
         } catch (error) {
             console.error('Error en register:', error);
-            return { success: false, error: 'Error de conexión con el servidor' };
+            return { success: false, error: 'Error de conexion con el servidor' };
         }
     };
 

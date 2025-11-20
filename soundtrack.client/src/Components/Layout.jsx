@@ -10,9 +10,9 @@ const Layout = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [showAuthModal, setShowAuthModal] = useState(false);
 
-    // Efecto para forzar actualización cuando cambia el estado de autenticación
+    // Efecto para forzar actualizacion cuando cambia el estado de autenticacion
     useEffect(() => {
-        console.log('Estado de autenticación cambió:', { isAuthenticated, user });
+        console.log('Estado de autenticacion cambio:', { isAuthenticated, user });
     }, [isAuthenticated, user]);
 
     const handleSearch = (e) => {
@@ -24,7 +24,7 @@ const Layout = () => {
     };
 
     const handleLogout = async () => {
-        if (window.confirm('¿Estás seguro que quieres cerrar sesión?')) {
+        if (window.confirm('Estas seguro que quieres cerrar sesion?')) {
             await logout();
             navigate('/');
         }
@@ -36,10 +36,10 @@ const Layout = () => {
         // Cerrar el modal
         setShowAuthModal(false);
 
-        // Forzar actualización del estado de autenticación
+        // Forzar actualizacion del estado de autenticacion
         await checkAuthStatus();
 
-        // Opcionalmente redirigir a perfil después de un pequeño delay
+        // Opcionalmente redirigir a perfil despues de un pequeno delay
         setTimeout(() => {
             // navigate(`/profile/${userData.userId}`);
         }, 100);
@@ -64,7 +64,7 @@ const Layout = () => {
                         </Link>
                     </div>
 
-                    {/* Búsqueda centro */}
+                    {/* Busqueda centro */}
                     <div className="navbar-center">
                         <form onSubmit={handleSearch}>
                             <input
@@ -77,7 +77,7 @@ const Layout = () => {
                         </form>
                     </div>
 
-                    {/* Perfil derecha - Cambia según autenticación */}
+                    {/* Perfil derecha - Cambia segun autenticacion */}
                     <div className="navbar-right">
                         {loading ? (
                             // Mientras carga
@@ -99,18 +99,18 @@ const Layout = () => {
                                 <button
                                     className="btn-logout"
                                     onClick={handleLogout}
-                                    title="Cerrar sesión"
+                                    title="Cerrar sesion"
                                 >
                                     X
                                 </button>
                             </div>
                         ) : (
-                            // Usuario NO logeado - Mostrar botón de login
+                            // Usuario NO logeado - Mostrar boton de login
                             <button
                                 className="btn-login"
                                 onClick={handleOpenAuthModal}
                             >
-                                Iniciar Sesión
+                                Iniciar Sesion
                             </button>
                         )}
                     </div>
@@ -125,7 +125,7 @@ const Layout = () => {
                 <p>&copy; 2025 SoundTrack</p>
             </footer>
 
-            {/* Modal de autenticación */}
+            {/* Modal de autenticacion */}
             {showAuthModal && (
                 <div className="auth-modal-overlay" onClick={handleCloseAuthModal}>
                     <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>

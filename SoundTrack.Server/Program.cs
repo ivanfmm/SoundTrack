@@ -21,11 +21,7 @@ namespace SoundTrack.Server
                 options.AddPolicy(name: myAllowSpecificOrigins,
                                   policy =>
                                   {
-                                      policy.WithOrigins(
-                                            "https://localhost:49825",  // Tu puerto actual
-                                            "http://localhost:5173",     // Vite default
-                                            "http://localhost:3000"      // React default
-                                        )
+                                      policy.WithOrigins("https://localhost:49825")
                                             .AllowAnyHeader()
                                             .AllowAnyMethod()
                                             .AllowCredentials(); // ⭐ CRÍTICO: Permite cookies

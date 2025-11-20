@@ -40,6 +40,9 @@ namespace SoundTrack.Server.Controllers
         {
             try
             {
+                review.CreatedAt = DateTime.UtcNow;
+                review.Likes = 0;
+                review.Dislikes = 0;
                 // Revisa si los perfiles existen
 
                 if (!string.IsNullOrEmpty(review.SongProfileId))
@@ -59,15 +62,16 @@ namespace SoundTrack.Server.Controllers
                 }
 
                 // Ahora sí, crear la review
-                _SoundTrackRepository.addReview(review);
+                await _SoundTrackRepository.addReview(review);
 
                 return CreatedAtAction(nameof(GetReviewById), new { id = review.Id }, review);
             }
             catch (Exception ex)
             {
                 return BadRequest(new { 
-                    error = "Error al crear la review", 
-                    message = ex.Message 
+                    error = "Error al crear la review",
+                    message = ex.Message,
+                    innerException = ex.InnerException?.Message
                 });
             }
         }

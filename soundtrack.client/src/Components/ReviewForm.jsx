@@ -41,13 +41,10 @@ const ReviewForm = ({ onSubmit, onCancel, profileId, profileType }) => {
         try {
             // Usar los datos REALES del usuario autenticado
             const reviewData = {
-                author: user.username,      //  Usuario real del Context
-                userId: user.userId,        //  ID real del Context
-                description: review.description,
-                score: review.score,
-                publicationDate: new Date().toISOString(),
-                likes: 0,
-                dislikes: 0
+                userId: user.userId,      
+                title: `Review por ${user.username}`,  
+                content: review.description,             
+                score: review.score,   
             };
 
             // Agregar el ID dependiendo si es canción, artista o álbum
