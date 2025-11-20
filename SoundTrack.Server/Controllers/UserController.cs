@@ -24,7 +24,7 @@ namespace SoundTrack.Server.Controllers
             return Ok(users);
         }
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserById(int id)
+        public async Task<IActionResult> GetUserById(string id)
         {
             var user = await _SoundTrackRepository.GetUserById(id);
             if (user == null)
@@ -51,7 +51,7 @@ namespace SoundTrack.Server.Controllers
             return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
         }
         [HttpPut("{id}")]
-        public IActionResult UpdateUser(int id, [FromBody] Models.User user)
+        public IActionResult UpdateUser(string id, [FromBody] Models.User user)
         {
             if (id != user.Id)
             {
@@ -67,7 +67,7 @@ namespace SoundTrack.Server.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteUser(int id) {
+        public IActionResult DeleteUser(string id) {
             var user = _SoundTrackRepository.GetUserById(id).Result;
             if (user == null)
             {
@@ -79,7 +79,7 @@ namespace SoundTrack.Server.Controllers
 
         //Actualizar informacion del perfil del usuario
         [HttpPatch("{id}/profile")]
-        public async Task<IActionResult> UpdateProfile(int id, [FromBody] UpdateProfileRequest request)
+        public async Task<IActionResult> UpdateProfile(string id, [FromBody] UpdateProfileRequest request)
         {
             var user = await _SoundTrackRepository.GetUserById(id);
             if (user == null)
@@ -90,7 +90,7 @@ namespace SoundTrack.Server.Controllers
             // Actualizar solo los que se modifico
             if (!string.IsNullOrEmpty(request.Username))
             {
-                user.Username = request.Username;
+                user.UserName = request.Username;
             }
             if (!string.IsNullOrEmpty(request.Email))
             {
@@ -113,7 +113,7 @@ namespace SoundTrack.Server.Controllers
                 user = new
                 {
                     id = user.Id,
-                    username = user.Username,
+                    username = user.UserName,
                     email = user.Email,
                     bio = user.Bio,
                     profilePictureUrl = user.ProfilePictureUrl
@@ -123,7 +123,7 @@ namespace SoundTrack.Server.Controllers
 
         // Actualizar favoritos del usuario
         [HttpPut("{id}/favorites")]
-        public async Task<IActionResult> UpdateFavorites(int id, [FromBody] UpdateFavoritesRequest request)
+        public async Task<IActionResult> UpdateFavorites(string id, [FromBody] UpdateFavoritesRequest request)
         {
             var user = await _SoundTrackRepository.GetUserById(id);
             if (user == null)
@@ -178,7 +178,7 @@ namespace SoundTrack.Server.Controllers
 
         // Obtener favoritos del usuario
         [HttpGet("{id}/favorites")]
-        public async Task<IActionResult> GetFavorites(int id)
+        public async Task<IActionResult> GetFavorites(string id)
         {
             var user = await _SoundTrackRepository.GetUserById(id);
             if (user == null)
@@ -200,7 +200,7 @@ namespace SoundTrack.Server.Controllers
 
         // Obtener perfil completo del usuario con estadísticas
         [HttpGet("{id}/profile")]
-        public async Task<IActionResult> GetUserProfile(int id)
+        public async Task<IActionResult> GetUserProfile(string id)
         {
             var user = await _SoundTrackRepository.GetUserById(id);
             if (user == null)
@@ -215,7 +215,7 @@ namespace SoundTrack.Server.Controllers
             return Ok(new
             {
                 id = user.Id,
-                username = user.Username,
+                username = user.UserName,
                 email = user.Email,
                 bio = user.Bio,
                 profilePictureUrl = user.ProfilePictureUrl,

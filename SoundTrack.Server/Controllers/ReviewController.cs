@@ -118,10 +118,10 @@ namespace SoundTrack.Server.Controllers
             {
                 // Propiedades que React necesita (SI SE BORRA DA ERROR 500)
                 Id = review.Id,
-                Author = review.Author,
-                Description = review.Description,
+                Author = review.User,
+                Description = review.Content,
                 Score = review.score,
-                PublicationDate = review.PublicationDate,
+                PublicationDate = review.CreatedAt,
                 Likes = review.Likes,        
                 Dislikes = review.Dislikes,   
 
@@ -151,10 +151,10 @@ namespace SoundTrack.Server.Controllers
             var cleanReviewDto = new
             {
                 Id = review.Id,
-                Author = review.Author,
-                Description = review.Description,
+                Author = review.User,
+                Description = review.Content,
                 Score = review.score,
-                PublicationDate = review.PublicationDate,
+                PublicationDate = review.CreatedAt,
                 Likes = review.Likes,
                 Dislikes = review.Dislikes,
                 SongProfileId = review.SongProfileId,
@@ -170,7 +170,7 @@ namespace SoundTrack.Server.Controllers
         }
 
         [HttpGet("{id}/like-status/{userId}")]
-        public async Task<IActionResult> GetUserLikeStatus(int id, int userId)
+        public async Task<IActionResult> GetUserLikeStatus(int id, string userId)
         {
             var status = await _SoundTrackRepository.GetUserLikeStatus(id, userId);
             return Ok(new
@@ -205,6 +205,6 @@ namespace SoundTrack.Server.Controllers
 
     public class UserActionRequest
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; }
     }
 }

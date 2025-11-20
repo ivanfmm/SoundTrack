@@ -6,7 +6,7 @@ namespace SoundTrack.Server.Services
     {
         //Users
         public Task<List<User>> GetAllUsers();
-        public Task<User?> GetUserById(int id);
+        public Task<User?> GetUserById(string id);
         public Task<User?> GetUserByUsername(string username);
         public void AddUser(User user);
         public void UpdateUser(User user);
@@ -24,10 +24,10 @@ namespace SoundTrack.Server.Services
         public void deleteArtistProfile(ArtistProfile artistProfile);
 
         //ArtistFollow
-        public Task<ArtistFollow?> FollowArtist(int userId, string artistId);
-        public Task<bool> UnfollowArtist(int userId, string artistId);
-        public Task<bool> IsFollowingArtist(int userId, string artistId);
-        public Task<List<ArtistProfile>> GetUserFollowedArtists(int userId);
+        public Task<ArtistFollow?> FollowArtist(string userId, string artistId);
+        public Task<bool> UnfollowArtist(string userId, string artistId);
+        public Task<bool> IsFollowingArtist(string userId, string artistId);
+        public Task<List<ArtistProfile>> GetUserFollowedArtists(string userId);
         public Task<int> GetArtistFollowersCount(string artistId);
         public Task<List<User>> GetArtistFollowers(string artistId);
 
@@ -55,9 +55,9 @@ namespace SoundTrack.Server.Services
 
         public void updateReview(Review review);
         public void deleteReview(Review review);
-        public Task<(Review? review, LikeType newStatus)> ToggleLike(int reviewId, int userId);
-        public Task<(Review? review, LikeType newStatus)> ToggleDislike(int reviewId, int userId);
-        public Task<LikeType> GetUserLikeStatus(int reviewId, int userId);
+        public Task<(Review? review, LikeType newStatus)> ToggleLike(int reviewId, string userId);
+        public Task<(Review? review, LikeType newStatus)> ToggleDislike(int reviewId, string userId);
+        public Task<LikeType> GetUserLikeStatus(int reviewId, string userId);
 
         //ReviewComments
         public Task<List<ReviewComment>> GetAllReviewComments();

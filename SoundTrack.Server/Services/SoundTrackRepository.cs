@@ -19,13 +19,13 @@ namespace SoundTrack.Server.Services
         {
             return await _context.Users.ToListAsync();
         }
-        public async Task<User?> GetUserById(int id)
+        public async Task<User?> GetUserById(string id)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
         public async Task<User?> GetUserByUsername(string username)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            return await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
         }
         public void AddUser(User user)
         {
@@ -121,7 +121,7 @@ namespace SoundTrack.Server.Services
         }
 
         //ArtistFollow
-        public async Task<ArtistFollow?> FollowArtist(int userId, string artistId)
+        public async Task<ArtistFollow?> FollowArtist(string userId, string artistId)
         {
             // Verificar si ya sigue al artista
             var existingFollow = await _context.ArtistFollows
@@ -147,7 +147,7 @@ namespace SoundTrack.Server.Services
             return artistFollow;
         }
 
-        public async Task<bool> UnfollowArtist(int userId, string artistId)
+        public async Task<bool> UnfollowArtist(string userId, string artistId)
         {
             var artistFollow = await _context.ArtistFollows
                 .FirstOrDefaultAsync(af => af.UserId == userId && af.ArtistProfileId == artistId);
@@ -163,13 +163,13 @@ namespace SoundTrack.Server.Services
             return true;
         }
 
-        public async Task<bool> IsFollowingArtist(int userId, string artistId)
+        public async Task<bool> IsFollowingArtist(string userId, string artistId)
         {
             return await _context.ArtistFollows
                 .AnyAsync(af => af.UserId == userId && af.ArtistProfileId == artistId);
         }
 
-        public async Task<List<ArtistProfile>> GetUserFollowedArtists(int userId)
+        public async Task<List<ArtistProfile>> GetUserFollowedArtists(string userId)
         {
             return await _context.ArtistFollows
                 .Where(af => af.UserId == userId)
@@ -291,7 +291,7 @@ namespace SoundTrack.Server.Services
             _context.SaveChanges();
         }
 
-        public async Task<(Review? review, LikeType newStatus)> ToggleLike(int reviewId, int userId)
+        public async Task<(Review? review, LikeType newStatus)> ToggleLike(int reviewId, string userId)
         {
             var review = await _context.Reviews
                 .FirstOrDefaultAsync(r => r.Id == reviewId);
@@ -348,7 +348,7 @@ namespace SoundTrack.Server.Services
         }
 
         //Para dislike copy y paste pero cambiando el like por dislike
-        public async Task<(Review? review, LikeType newStatus)> ToggleDislike(int reviewId, int userId)
+        public async Task<(Review? review, LikeType newStatus)> ToggleDislike(int reviewId, string userId)
         {
             var review = await _context.Reviews
                 .FirstOrDefaultAsync(r => r.Id == reviewId);
@@ -404,7 +404,7 @@ namespace SoundTrack.Server.Services
         }
 
         //Saber que tiene (like, dislike o nada)
-        public async Task<LikeType> GetUserLikeStatus(int reviewId, int userId)
+        public async Task<LikeType> GetUserLikeStatus(int reviewId, string userId)
         {
             var reviewLike = await _context.ReviewLikes
                 .FirstOrDefaultAsync(rl => rl.ReviewId == reviewId && rl.UserId == userId);
@@ -438,6 +438,5 @@ namespace SoundTrack.Server.Services
         }
 
        
-
     }
 }

@@ -149,7 +149,7 @@ namespace SoundTrack.Server.Controllers
 
         // Verifica si ya sigue el artista
         [HttpGet("{artistId}/is-following/{userId}")]
-        public async Task<IActionResult> IsFollowingArtist(string artistId, int userId)
+        public async Task<IActionResult> IsFollowingArtist(string artistId, string userId)
         {
             var isFollowing = await _SoundTrackRepository.IsFollowingArtist(userId, artistId);
 
@@ -194,7 +194,7 @@ namespace SoundTrack.Server.Controllers
                 followers = followers.Select(u => new
                 {
                     id = u.Id,
-                    username = u.Username,
+                    username = u.UserName,
                     profilePictureUrl = u.ProfilePictureUrl
                 })
             });
@@ -202,7 +202,7 @@ namespace SoundTrack.Server.Controllers
 
         // Obtener artistas que sigue un usuario
         [HttpGet("followed/user/{userId}")]
-        public async Task<IActionResult> GetUserFollowedArtists(int userId)
+        public async Task<IActionResult> GetUserFollowedArtists(string userId)
         {
             var user = await _SoundTrackRepository.GetUserById(userId);
             if (user == null)
@@ -215,7 +215,7 @@ namespace SoundTrack.Server.Controllers
             return Ok(new
             {
                 userId = userId,
-                username = user.Username,
+                username = user.UserName,
                 followedArtistsCount = followedArtists.Count,
                 followedArtists = followedArtists.Select(a => new
                 {
@@ -231,7 +231,7 @@ namespace SoundTrack.Server.Controllers
     // Clase auxiliar para recibir el userId en el body
     public class FollowRequest
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; }
     }
 }
 

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SoundTrack.Server.Data;
 using SoundTrack.Server.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace SoundTrack.Server.Controllers
 {
@@ -11,13 +10,14 @@ namespace SoundTrack.Server.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        // Cambiar de IdentityUser a User
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly SoundTrackContext _context;
 
         public AuthController(
-            UserManager<IdentityUser> userManager,
-            SignInManager<IdentityUser> signInManager,
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
             SoundTrackContext context)
         {
             _userManager = userManager;
@@ -25,7 +25,6 @@ namespace SoundTrack.Server.Controllers
             _context = context;
         }
 
-        // POST: api/Auth/register
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto model)
         {
@@ -34,14 +33,20 @@ namespace SoundTrack.Server.Controllers
                 return BadRequest(ModelState);
             }
 
-            // 1. Crear usuario en Identity
-            var identityUser = new IdentityUser
+            // Ahora solo creas UN usuario (User ya ES un IdentityUser)
+            var user = new User
             {
                 UserName = model.Username,
-                Email = model.Email
+                Email = model.Email,
+                CreateDate = DateTime.UtcNow,
+                BirthDay = model.BirthDay.HasValue
+                    ? DateTime.SpecifyKind(model.BirthDay.Value, DateTimeKind.Utc)
+                    : DateTime.UtcNow.AddYears(-18),
+                ProfilePictureUrl = null,
+                Bio = ""
             };
 
-            var result = await _userManager.CreateAsync(identityUser, model.Password);
+            var result = await _userManager.CreateAsync(user, model.Password);
 
             if (!result.Succeeded)
             {
@@ -52,33 +57,17 @@ namespace SoundTrack.Server.Controllers
                 return BadRequest(ModelState);
             }
 
-            // 2. Crear registro en tabla Users (tu modelo personalizado)
-            var user = new User
-            {
-                Username = model.Username,
-                Email = model.Email,
-                IdentityUserId = identityUser.Id,
-                CreateDate = DateTime.UtcNow,
-                BirthDay = model.BirthDay ?? DateTime.UtcNow.AddYears(-18),
-                ProfilePictureUrl = null
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            // 3. Login automático
-            await _signInManager.SignInAsync(identityUser, isPersistent: false);
+            // Login automático
+            await _signInManager.SignInAsync(user, isPersistent: false);
 
             return Ok(new
             {
                 message = "User registered successfully",
                 userId = user.Id,
-                identityUserId = identityUser.Id,
-                username = user.Username
+                username = user.UserName
             });
         }
 
-        // POST: api/Auth/login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
@@ -95,16 +84,13 @@ namespace SoundTrack.Server.Controllers
 
             if (result.Succeeded)
             {
-                var identityUser = await _userManager.FindByNameAsync(model.Username);
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.IdentityUserId == identityUser.Id);
+                var user = await _userManager.FindByNameAsync(model.Username);
 
                 return Ok(new
                 {
                     message = "Login successful",
-                    userId = user?.Id,
-                    identityUserId = identityUser.Id,
-                    username = identityUser.UserName
+                    userId = user.Id,
+                    username = user.UserName
                 });
             }
 
@@ -116,7 +102,6 @@ namespace SoundTrack.Server.Controllers
             return Unauthorized(new { message = "Invalid username or password" });
         }
 
-        // POST: api/Auth/logout
         [HttpPost("logout")]
         [Authorize]
         public async Task<IActionResult> Logout()
@@ -125,85 +110,34 @@ namespace SoundTrack.Server.Controllers
             return Ok(new { message = "Logout successful" });
         }
 
-        // GET: api/Auth/current
         [HttpGet("current")]
         [Authorize]
         public async Task<IActionResult> GetCurrentUser()
         {
-            var identityUser = await _userManager.GetUserAsync(User);
-            if (identityUser == null)
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
             {
                 return Unauthorized(new { message = "User not authenticated" });
             }
 
-            var user = await _context.Users
-                .Include(u => u.Followers)
-                .Include(u => u.Following)
-                .FirstOrDefaultAsync(u => u.IdentityUserId == identityUser.Id);
+            // Cargar las relaciones si es necesario
+            await _context.Entry(user)
+                .Collection(u => u.Followers)
+                .LoadAsync();
+            await _context.Entry(user)
+                .Collection(u => u.Following)
+                .LoadAsync();
 
             return Ok(new
             {
-                userId = user?.Id,
-                identityUserId = identityUser.Id,
-                username = identityUser.UserName,
-                email = identityUser.Email,
-                profilePictureUrl = user?.ProfilePictureUrl,
-                birthDay = user?.BirthDay,
-                followersCount = user?.Followers?.Count ?? 0,
-                followingCount = user?.Following?.Count ?? 0
-            });
-        }
-
-        // POST: api/Auth/migrate-existing-user
-        // Migrar usuarios que ya existen en la tabla Users
-        [HttpPost("migrate-existing-user")]
-        public async Task<IActionResult> MigrateExistingUser([FromBody] MigrateUserDto model)
-        {
-            // 1. Buscar usuario en tabla Users antigua
-            var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == model.Username);
-
-            if (existingUser == null)
-            {
-                return NotFound(new { message = "User not found" });
-            }
-
-            if (!string.IsNullOrEmpty(existingUser.IdentityUserId))
-            {
-                return BadRequest(new { message = "User already migrated" });
-            }
-
-            // 2. Crear en Identity
-            var identityUser = new IdentityUser
-            {
-                UserName = existingUser.Username,
-                Email = existingUser.Email,
-                EmailConfirmed = true
-            };
-
-            var result = await _userManager.CreateAsync(identityUser, model.NewPassword);
-
-            if (!result.Succeeded)
-            {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-                return BadRequest(ModelState);
-            }
-
-            // 3. Vincular
-            existingUser.IdentityUserId = identityUser.Id;
-            await _context.SaveChangesAsync();
-
-            // 4. Login automático
-            await _signInManager.SignInAsync(identityUser, false);
-
-            return Ok(new
-            {
-                message = "User migrated successfully",
-                userId = existingUser.Id,
-                identityUserId = identityUser.Id
+                userId = user.Id,
+                username = user.UserName,
+                email = user.Email,
+                profilePictureUrl = user.ProfilePictureUrl,
+                birthDay = user.BirthDay,
+                bio = user.Bio,
+                followersCount = user.Followers?.Count ?? 0,
+                followingCount = user.Following?.Count ?? 0
             });
         }
     }
@@ -222,11 +156,5 @@ namespace SoundTrack.Server.Controllers
         public string Username { get; set; }
         public string Password { get; set; }
         public bool RememberMe { get; set; }
-    }
-
-    public class MigrateUserDto
-    {
-        public string Username { get; set; }
-        public string NewPassword { get; set; }
     }
 }

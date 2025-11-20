@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using SoundTrack.Server.Data;
+using SoundTrack.Server.Models;
 using SoundTrack.Server.Services;
 using System.Configuration;
 
@@ -41,7 +42,7 @@ namespace SoundTrack.Server
             builder.Services.AddDbContext<SoundTrackContext>(options => options.UseNpgsql(databaseConfig.SupabaseConnection));
 
             // ⭐ AGREGADO: Configuración de Identity
-            builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            builder.Services.AddIdentity<User, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
