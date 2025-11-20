@@ -53,7 +53,7 @@ namespace SoundTrack.Server
 				options.SlidingExpiration = true;
 			});
 
-			// 👇 REEMPLAZA DESDE AQUÍ
+			
 			builder.Services.AddAuthentication().AddSpotify(options =>
 			{
 				options.ClientId = builder.Configuration["Spotify:ClientId"];
@@ -65,14 +65,14 @@ namespace SoundTrack.Server
 				options.Scope.Add("user-read-email");
 				options.Scope.Add("user-top-read");
 
-				// 🔥 ESTO SOLUCIONA EL PROBLEMA - Intercepta ANTES de construir la redirect_uri
+				
 				options.Events.OnRedirectToAuthorizationEndpoint = context =>
 				{
-					// Fuerza HTTPS en el request para que la librería lo use
+					// Fuerza HTTPS en el request para que la libreria lo use
 					context.Request.Scheme = "https";
 					context.Request.Host = new HostString("127.0.0.1", 7232);
 
-					// La librería usará estos valores para construir la redirect_uri correcta
+					// La librería usara estos valores para construir la redirect_uri correcta
 					var redirectUri = context.RedirectUri
 					.Replace("http://", "https://")
 					.Replace("localhost", "127.0.0.1");
@@ -83,7 +83,7 @@ namespace SoundTrack.Server
 
 				options.Events.OnCreatingTicket = async context =>
 				{
-					// También forzamos HTTPS aquí por si acaso
+					// Tambien forzamos HTTPS aquí por si acaso
 					context.Request.Scheme = "https";
 					context.Request.Host = new HostString("127.0.0.1", 7232);
 
@@ -127,25 +127,17 @@ namespace SoundTrack.Server
 					}
 				};
 			});
-			// 👆 HASTA AQUÍ
+			
 			builder.Services.AddControllers();
 			builder.Services.AddScoped<ISoundTrackRepository, SoundTrackRepository>();
 			builder.Services.AddEndpointsApiExplorer();
 			builder.Services.AddSwaggerGen();
 
-			// Agrega esto justo antes de var app = builder.Build();
-			//builder.WebHost.UseUrls("https://127.0.0.1:7232");
+			
 
 			var app = builder.Build();
 
-			// 👇👇👇 ESTE ES EL ÚNICO ARREGLO QUE NECESITAS 👇👇👇
-			// Debe ser LO PRIMERO. Borré los duplicados que tenías.
-			app.Use(async (context, next) =>
-			{
-				context.Request.Scheme = "https";
-				await next();
-			});
-			// 👆👆👆 FIN DEL ARREGLO 👆👆👆
+		
 
 			app.UseDefaultFiles();
 			app.UseStaticFiles();
