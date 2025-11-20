@@ -28,7 +28,7 @@ const SongProfile = () => {
     const fetchAverageScore = async () => {
         try {
             const response = await fetch(
-                `https://localhost:7232/api/review/average-score/${id}?profileType=song`
+                `https://127.0.0.1:7232/api/review/average-score/${id}?profileType=song`
             );
             
             if (response.ok) {

@@ -16,22 +16,21 @@ namespace SoundTrack.Server
 
 			
 			var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
-			builder.Services.AddCors(options =>
-			{
-				options.AddPolicy(name: myAllowSpecificOrigins,
-					policy =>
-					{
-						policy.WithOrigins(
-						
-							"https://127.0.0.1:49825")
-						.AllowAnyHeader()
-						.AllowAnyMethod()
-						.AllowCredentials();
-					});
-			});
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(name: myAllowSpecificOrigins,
+                    policy =>
+                    {
+                        policy
+                            .SetIsOriginAllowed(origin => true) // Permitir cualquier origen (React en cualquier puerto)
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    });
+            });
 
-			//Servicios
-			builder.Services.AddHttpClient();
+            //Servicios
+            builder.Services.AddHttpClient();
 			builder.Services.AddScoped<ISpotifyProfileService, SpotifyProfileService>();
 			builder.Services.AddScoped<ISpotifyTokenService, SpotifyTokenService>();
 			builder.Services.AddScoped<ISoundTrackRepository, SoundTrackRepository>();

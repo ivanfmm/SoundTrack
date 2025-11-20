@@ -71,7 +71,7 @@ const Layout = () => {
                     </div>
 
                     {/* Busqueda centro */}
-                    <div className="navbar-center">
+                    <div className="navbar-center"> 
                         <form onSubmit={handleSearch}>
                             <input
                                 type="text"

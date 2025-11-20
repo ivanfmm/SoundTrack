@@ -448,6 +448,86 @@ namespace SoundTrack.Server.Services
             _context.SaveChanges();
         }
 
-       
+        //Top Rated Content
+        public async Task<List<ArtistProfile>> GetTopRatedArtists(int count = 5)
+        {
+            var artistsWithScores = await _context.ArtistProfiles
+                .Select(artist => new
+                {
+                    Artist = artist,
+                    AverageScore = _context.Reviews
+                        .Where(r => r.ArtistProfileId == artist.Id)
+                        .Average(r => (double?)r.score),
+                    ReviewCount = _context.Reviews
+                        .Count(r => r.ArtistProfileId == artist.Id)
+                })
+                //.Where(x => x.ReviewCount > 0)  // Solo artistas con reviews
+                .OrderByDescending(x => x.AverageScore)
+                .ThenByDescending(x => x.ReviewCount) 
+                .Take(count)
+                .ToListAsync();
+
+            return artistsWithScores.Select(x => x.Artist).ToList();
+        }
+
+        // Copy paste pero cambiando a album
+        public async Task<List<AlbumProfile>> GetTopRatedAlbums(int count = 5)
+        {
+            var albumsWithScores = await _context.AlbumProfiles
+                .Select(album => new
+                {
+                    Album = album,
+                    AverageScore = _context.Reviews
+                        .Where(r => r.AlbumProfileId == album.Id)
+                        .Average(r => (double?)r.score),
+                    ReviewCount = _context.Reviews
+                        .Count(r => r.AlbumProfileId == album.Id)
+                })
+                //.Where(x => x.ReviewCount > 0)  
+                .OrderByDescending(x => x.AverageScore)
+                .ThenByDescending(x => x.ReviewCount)
+                .Take(count)
+                .ToListAsync();
+
+            return albumsWithScores.Select(x => x.Album).ToList();
+        }
+
+        //Lo mismo pero con canciones
+        public async Task<List<SongProfile>> GetTopRatedSongs(int count = 5)
+        {
+            var songsWithScores = await _context.SongProfiles
+                .Select(song => new
+                {
+                    Song = song,
+                    AverageScore = _context.Reviews
+                        .Where(r => r.SongProfileId == song.Id)
+                        .Average(r => (double?)r.score),
+                    ReviewCount = _context.Reviews
+                        .Count(r => r.SongProfileId == song.Id)
+                })
+                .Where(x => x.ReviewCount > 0)  
+                .OrderByDescending(x => x.AverageScore)
+                .ThenByDescending(x => x.ReviewCount)
+                .Take(count)
+                .ToListAsync();
+
+            return songsWithScores.Select(x => x.Song).ToList();
+        }
+        
+        // Este es similar pero no es lo mismo, aqui sacamos los reviews (sin importar de que), y los filtramos por likes (si tienen lo mismo se desempata por fecha)
+        public async Task<List<Review>> GetTopLikedReviews(int count = 5)
+        {
+            return await _context.Reviews
+                .Include(r => r.User)
+                .Include(r => r.SongProfile)
+                .Include(r => r.ArtistProfile)
+                .Include(r => r.AlbumProfile)
+                .OrderByDescending(r => r.Likes)
+                .ThenByDescending(r => r.CreatedAt) 
+                .Take(count)
+                .ToListAsync();
+        }
+
+
     }
 }

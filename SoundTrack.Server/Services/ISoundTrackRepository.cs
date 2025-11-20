@@ -66,6 +66,13 @@ namespace SoundTrack.Server.Services
         public void updateReviewComment(ReviewComment reviewComment);
         public void deleteReviewComment(ReviewComment reviewComment);
 
+        //Top Rated Content
+        public Task<List<ArtistProfile>> GetTopRatedArtists(int count = 5);
+        public Task<List<AlbumProfile>> GetTopRatedAlbums(int count = 5);
+        public Task<List<SongProfile>> GetTopRatedSongs(int count = 5);
+        public Task<List<Review>> GetTopLikedReviews(int count = 5);
+
+
         //Falta logica para los Likes y Dislikes que se guarden en memoria (pensaba hacer un tipo de array que se guarde, para aumentar los datos en la base de datos todo de una)\
         //Se pueden agregar funciones para eliminar
     }
