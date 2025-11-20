@@ -1,6 +1,6 @@
 ﻿namespace SoundTrack.Server.Models
 {
-    public class UserFollow
+    public class UserUser
     {
         public int Id { get; set; }
 

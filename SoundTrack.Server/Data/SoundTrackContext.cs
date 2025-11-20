@@ -15,7 +15,7 @@ namespace SoundTrack.Server.Data
         public DbSet<ReviewComment> ReviewComments { get; set; }
         public DbSet<ReviewLike> ReviewLikes { get; set; }
         public DbSet<Models.ArtistFollow> ArtistFollows { get; set; }
-        public DbSet<UserFollow> UserFollows { get; set; }
+        public DbSet<UserUser> UserFollows { get; set; }
 
 
         public SoundTrackContext(DbContextOptions<SoundTrackContext> options) : base(options)
@@ -46,8 +46,11 @@ namespace SoundTrack.Server.Data
             });
 
             // ===== CONFIGURACIÓN DE USERFOLLOWS =====
-            modelBuilder.Entity<UserFollow>(entity =>
+            modelBuilder.Entity<UserUser>(entity =>
             {
+                // ⭐ AGREGADO: Mapear a la tabla "UserUser" existente
+                entity.ToTable("UserUser");
+
                 entity.HasKey(uf => uf.Id);
                 entity.HasIndex(uf => new { uf.FollowerId, uf.FollowingId }).IsUnique();
                 entity.Property(uf => uf.FollowDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
