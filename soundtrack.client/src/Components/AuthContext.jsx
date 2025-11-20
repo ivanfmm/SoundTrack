@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuthStatus = async () => {
         try {
-            const response = await fetch('https://localhost:7232/api/auth/current', {
+            const response = await fetch('https://127.0.0.1:7232/api/auth/current', {
                 credentials: 'include'
             });
 
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password, rememberMe = false) => {
         try {
-            const response = await fetch('https://localhost:7232/api/auth/login', {
+            const response = await fetch('https://127.0.0.1:7232/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (username, email, password, birthDay = null) => {
         try {
-            const response = await fetch('https://localhost:7232/api/auth/register', {
+            const response = await fetch('https://127.0.0.1:7232/api/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            await fetch('https://localhost:7232/api/auth/logout', {
+            await fetch('https://127.0.0.1:7232/api/auth/logout', {
                 method: 'POST',
                 credentials: 'include'
             });

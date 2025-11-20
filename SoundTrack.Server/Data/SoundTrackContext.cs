@@ -27,10 +27,8 @@ namespace SoundTrack.Server.Data
 			// ===== CONFIGURACIÓN DE USER =====
 			modelBuilder.Entity<User>(entity =>
 			{
-				// Email ya tiene índice único por defecto en Identity
 				entity.HasIndex(e => e.UserName).IsUnique();
 
-				// Relaciones con UserUser (Followers/Following)
 				entity.HasMany(u => u.Followers)
 					.WithOne(uf => uf.Following)
 					.HasForeignKey(uf => uf.FollowingId)
@@ -56,56 +54,56 @@ namespace SoundTrack.Server.Data
 			{
 				entity.HasKey(r => r.Id);
 
+				// Propiedades
+				entity.Property(r => r.UserId).IsRequired();
+				entity.Property(r => r.Title).IsRequired();
+				entity.Property(r => r.Content).IsRequired();
+				entity.Property(r => r.Likes).HasDefaultValue(0);
+				entity.Property(r => r.Dislikes).HasDefaultValue(0);
+				entity.Property(r => r.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+				// Relación con User
 				entity.HasOne(r => r.User)
 					.WithMany(u => u.Reviews)
 					.HasForeignKey(r => r.UserId)
 					.OnDelete(DeleteBehavior.Cascade);
 
+				// Relaciones con Profiles
 				entity.HasOne(r => r.ArtistProfile)
-					.WithMany()
+					.WithMany(a => a.reviews)
 					.HasForeignKey(r => r.ArtistProfileId)
-					.OnDelete(DeleteBehavior.SetNull);
+					.OnDelete(DeleteBehavior.SetNull)
+					.IsRequired(false);
 
-                // Configurar propiedades
-                entity.Property(r => r.UserId).IsRequired();
-                entity.Property(r => r.Title).IsRequired();
-                entity.Property(r => r.Content).IsRequired();
-                entity.Property(r => r.Likes).HasDefaultValue(0);
-                entity.Property(r => r.Dislikes).HasDefaultValue(0);
-                entity.Property(r => r.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+				entity.HasOne(r => r.AlbumProfile)
+					.WithMany(a => a.reviews)
+					.HasForeignKey(r => r.AlbumProfileId)
+					.OnDelete(DeleteBehavior.SetNull)
+					.IsRequired(false);
 
-                // Relación con User
-                entity.HasOne(r => r.User)
-                    .WithMany(u => u.Reviews)
-                    .HasForeignKey(r => r.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+				entity.HasOne(r => r.SongProfile)
+					.WithMany(s => s.reviews)
+					.HasForeignKey(r => r.SongProfileId)
+					.OnDelete(DeleteBehavior.SetNull)
+					.IsRequired(false);
 
-                // ⭐ KEY FIX: Explicitly configure WITH the profile's reviews collection
-                entity.HasOne(r => r.ArtistProfile)
-                    .WithMany(a => a.reviews)  // <-- Use the collection from ArtistProfile
-                    .HasForeignKey(r => r.ArtistProfileId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .IsRequired(false);
+				// Índices
+				entity.HasIndex(r => r.UserId);
+				entity.HasIndex(r => r.ArtistProfileId);
+				entity.HasIndex(r => r.AlbumProfileId);
+				entity.HasIndex(r => r.SongProfileId);
+				entity.HasIndex(r => r.CreatedAt);
+			});
 
-                entity.HasOne(r => r.AlbumProfile)
-                    .WithMany(a => a.reviews)  // <-- Use the collection from AlbumProfile
-                    .HasForeignKey(r => r.AlbumProfileId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .IsRequired(false);
+			// ===== CONFIGURACIÓN DE REVIEWCOMMENT =====
+			modelBuilder.Entity<ReviewComment>(entity =>
+			{
+				entity.HasKey(rc => rc.Id);
 
-                entity.HasOne(r => r.SongProfile)
-                    .WithMany(s => s.reviews)  // <-- Use the collection from SongProfile
-                    .HasForeignKey(r => r.SongProfileId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .IsRequired(false);
-
-                // Índices
-                entity.HasIndex(r => r.UserId);
-                entity.HasIndex(r => r.ArtistProfileId);
-                entity.HasIndex(r => r.AlbumProfileId);
-                entity.HasIndex(r => r.SongProfileId);
-                entity.HasIndex(r => r.CreatedAt);
-            });
+				entity.HasOne(rc => rc.Review)
+					.WithMany(r => r.Comments)
+					.HasForeignKey(rc => rc.ReviewId)
+					.OnDelete(DeleteBehavior.Cascade);
 
 				entity.HasOne(rc => rc.User)
 					.WithMany()

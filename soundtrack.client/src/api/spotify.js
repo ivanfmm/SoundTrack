@@ -61,6 +61,16 @@ export const getToken = async () => {
         }
     } catch (error) {
         console.error('Error obteniendo token:', error);
+        
+    }
+    try {// Fallback al token de la app
+        console.log('Usando app token: Usuario autenticado sin cuenta Spotify');
+        const appResponse = await fetch('/api/Spotify/token');
+        const appData = await appResponse.json();
+        return appData.access_token;
+    }
+    catch(fallbackError) {
+        console.error('No se obtuvo ningun token de spotify', fallbackError);
         return null;
     }
 };
@@ -73,7 +83,7 @@ export const getTopTracks = async () => {
     
     if (!token) return [];
     
-    // Usar la playlist de artistas que SÍ funciona
+    // Usar la playlist de artistas que Si funciona
     const url = 'https://api.spotify.com/v1/playlists/5iwkYfnHAGMEFLiHFFGnP4/tracks?limit=10';
     
     
