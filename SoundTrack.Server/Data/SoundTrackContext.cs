@@ -67,23 +67,29 @@ namespace SoundTrack.Server.Data
                     .HasForeignKey(r => r.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                // Relación con ArtistProfile (opcional)
+                // ⭐ FIXED: Relación con ArtistProfile (opcional)
                 entity.HasOne(r => r.ArtistProfile)
                     .WithMany()
                     .HasForeignKey(r => r.ArtistProfileId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .HasConstraintName("FK_Reviews_ArtistProfiles_ArtistProfileId")
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
 
-                // Relación con AlbumProfile (opcional)
+                // ⭐ FIXED: Relación con AlbumProfile (opcional)
                 entity.HasOne(r => r.AlbumProfile)
                     .WithMany()
                     .HasForeignKey(r => r.AlbumProfileId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .HasConstraintName("FK_Reviews_AlbumProfiles_AlbumProfileId")
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
 
-                // Relación con SongProfile (opcional)
+                // ⭐ FIXED: Relación con SongProfile (opcional)
                 entity.HasOne(r => r.SongProfile)
                     .WithMany()
                     .HasForeignKey(r => r.SongProfileId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .HasConstraintName("FK_Reviews_SongProfiles_SongProfileId")
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
 
                 // Índices para búsquedas rápidas
                 entity.HasIndex(r => r.UserId);

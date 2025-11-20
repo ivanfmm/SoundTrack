@@ -7,24 +7,25 @@ namespace SoundTrack.Server.Models
     {
         public int Id { get; set; }
 
-        // Foreign Key para User (Identity usa string)
         public string UserId { get; set; }
 
-        // Propiedad de navegación hacia User
-        [ValidateNever] // ← Añade esto
-        [ForeignKey("UserId")]
+        [ValidateNever]
+        [ForeignKey(nameof(UserId))]  // ⭐ Use nameof
         public User User { get; set; }
 
-        // Foreign Keys para los perfiles (pueden ser nullables si no siempre se asocian)
         public string? ArtistProfileId { get; set; }
-        [ForeignKey("ArtistProfileId")]
+        [ValidateNever]
+        [ForeignKey(nameof(ArtistProfileId))]  // ⭐ Use nameof
         public ArtistProfile? ArtistProfile { get; set; }
 
         public string? AlbumProfileId { get; set; }
-        [ForeignKey("AlbumProfileId")]
+        [ValidateNever]
+        [ForeignKey(nameof(AlbumProfileId))]  // ⭐ Use nameof
         public AlbumProfile? AlbumProfile { get; set; }
 
         public string? SongProfileId { get; set; }
+        [ValidateNever]
+        [ForeignKey(nameof(SongProfileId))]  // ⭐ Use nameof
         public SongProfile? SongProfile { get; set; }
 
         // Contenido de la review
