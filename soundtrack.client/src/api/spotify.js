@@ -106,7 +106,7 @@ export const getTopArtists = async () => {
     if (!token) return [];
     
     // Playlist de artistas mas seguidos
-    const url = 'https://api.spotify.com/v1/playlists/4i96DEnCkGkhBRcI9SYuc4/tracks?limit=10';
+    const url = `https://api.spotify.com/v1/playlists/4i96DEnCkGkhBRcI9SYuc4/tracks?limit=10`;
     
     
     const response = await fetch(url, {

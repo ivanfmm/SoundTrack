@@ -24,7 +24,7 @@ const AlbumProfile = () => {
     const fetchAverageScore = async () => {
         try {
             const response = await fetch(
-                `https://localhost:7232/api/review/average-score/${id}?profileType=album`
+                `/api/review/average-score/${id}?profileType=album`
             );
             
             if (response.ok) {

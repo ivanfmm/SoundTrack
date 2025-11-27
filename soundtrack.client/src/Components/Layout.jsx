@@ -129,6 +129,7 @@ const Layout = () => {
 
             <footer className="app-footer">
                 <p>&copy; 2025 SoundTrack</p>
+                <p>Hecho por: Ivan Mijares, Christofer Castañeda, Diego Varela, Ivan Fernandez</p>
             </footer>
 
             {/* Modal de autenticacion */}

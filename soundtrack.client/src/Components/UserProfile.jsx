@@ -50,7 +50,7 @@ const UserProfile = () => {
         try {
             setLoading(true);
 
-            const response = await fetch(`https://127.0.0.1:7232/api/user/${profileId}/profile`, {
+            const response = await fetch(`/api/user/${profileId}/profile`, {
                 credentials: 'include'
             });
 
@@ -123,7 +123,7 @@ const UserProfile = () => {
 
         try {
             const response = await fetch(
-                `https://127.0.0.1:7232/api/user/${currentUser.userId}/is-following/${user.id}`,
+                `/api/user/${currentUser.userId}/is-following/${user.id}`,
                 { credentials: 'include' }
             );
 
@@ -148,8 +148,8 @@ const UserProfile = () => {
 
         try {
             const endpoint = isFollowing
-                ? `https://127.0.0.1:7232/api/user/${currentUser.userId}/unfollow/${user.id}`
-                : `https://127.0.0.1:7232/api/user/${currentUser.userId}/follow/${user.id}`;
+                ? `/api/user/${currentUser.userId}/unfollow/${user.id}`
+                : `/api/user/${currentUser.userId}/follow/${user.id}`;
 
             const method = isFollowing ? 'DELETE' : 'POST';
 
@@ -181,7 +181,7 @@ const UserProfile = () => {
         }
 
         try {
-            const response = await fetch(`https://127.0.0.1:7232/api/user/${user.id}/profile`, {
+            const response = await fetch(`/api/user/${user.id}/profile`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -213,7 +213,7 @@ const UserProfile = () => {
             const albumIds = favoriteAlbums.map(a => a.id).join(',');
             const songIds = favoriteSongs.map(s => s.id).join(',');
 
-            const response = await fetch(`https://127.0.0.1:7232/api/user/${user.id}/favorites`, {
+            const response = await fetch(`/api/user/${user.id}/favorites`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -29,7 +29,7 @@ const ReviewsList = ({ profileId, profileType }) => {
             setLoading(true);
             setError(null);
 
-            const response = await fetch('https://127.0.0.1:7232/api/review', {
+            const response = await fetch(`/api/review`, {
                 credentials: 'include'
             });
 
@@ -70,7 +70,7 @@ const ReviewsList = ({ profileId, profileType }) => {
         for (const review of reviewsList) {
             try {
                 const response = await fetch(
-                    `https://127.0.0.1:7232/api/review/${review.id}/like-status/${user.userId}`,
+                    `/api/review/${review.id}/like-status/${user.userId}`,
                     { credentials: 'include' }
                 );
 
@@ -93,7 +93,7 @@ const ReviewsList = ({ profileId, profileType }) => {
         }
 
         try {
-            const response = await fetch(`https://127.0.0.1:7232/api/review/${reviewId}/${action}`, {
+            const response = await fetch(`/api/review/${reviewId}/${action}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

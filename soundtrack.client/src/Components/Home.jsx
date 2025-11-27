@@ -29,7 +29,7 @@ const Home = () => {
     const fetchSoundTrackData = async () => {
         try {
             // Fetch top rated artists
-            const artistsRes = await fetch('https://127.0.0.1:7232/api/Home/top-artists?count=5');
+            const artistsRes = await fetch(`/api/Home/top-artists?count=5`);
             if (artistsRes.ok) {
                 const artistsData = await artistsRes.json();
                 console.log("Artistas recibidos:", artistsData);
@@ -37,7 +37,7 @@ const Home = () => {
             }
 
             // Fetch top rated albums
-            const albumsRes = await fetch('https://127.0.0.1:7232/api/Home/top-albums?count=5');
+            const albumsRes = await fetch(`/api/Home/top-albums?count=5`);
             if (albumsRes.ok) {
                 const albumsData = await albumsRes.json();
                 console.log("Albums recibidos:", albumsRes);
@@ -45,7 +45,7 @@ const Home = () => {
             }
 
             // Fetch top rated songs
-            const songsRes = await fetch('https://127.0.0.1:7232/api/Home/top-songs?count=5');
+            const songsRes = await fetch(`/api/Home/top-songs?count=5`);
             if (songsRes.ok) {
                 const songsData = await songsRes.json();
                 console.log("Canciones recibidos:", songsRes);
@@ -53,7 +53,7 @@ const Home = () => {
             }
 
             // Fetch top reviews
-            const reviewsRes = await fetch('https://127.0.0.1:7232/api/Home/top-reviews?count=5');
+            const reviewsRes = await fetch(`/api/Home/top-reviews?count=5`);
             if (reviewsRes.ok) {
                 const reviewsData = await reviewsRes.json();
                 setTopReviews(reviewsData);

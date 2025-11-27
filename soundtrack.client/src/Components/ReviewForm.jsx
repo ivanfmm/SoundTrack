@@ -58,7 +58,7 @@ const ReviewForm = ({ onSubmit, onCancel, profileId, profileType }) => {
 
             console.log('Enviando review:', reviewData);
 
-            const response = await fetch('https://localhost:7232/api/review', {
+            const response = await fetch(`/api/review`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
