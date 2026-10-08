@@ -57,17 +57,16 @@ const ArtistProfile = () => {
                 id: artistData.id,
                 name: artistData.name,
                 imageUrl: artistData.images[0]?.url || '/placeholder.png',
-                description: `${artistData.name} tiene ${artistData.followers.total.toLocaleString()} seguidores en Spotify.`,
+                // Spotify quito followers y popularity del artista (feb 2026)
+                description: `${artistData.name} en Spotify.`,
                 genres: artistData.genres || [],
                 tags: [],
-                followers: artistData.followers.total,
-                popularity: artistData.popularity
             };
             
             setArtist(formattedArtist);
             
             // Obtener top tracks del artista
-            const tracksData = await getArtistTopTracks(id);
+            const tracksData = await getArtistTopTracks(id, artistData.name);
             const formattedTracks = tracksData.slice(0, 5).map(track => ({
                 id: track.id,
                 name: track.name,
@@ -122,16 +121,8 @@ const ArtistProfile = () => {
         );
     }
 
-    const metadata = [
-        {
-            label: 'Popularidad',
-            value: `${artist.popularity}/100`
-        },
-        {
-            label: 'Seguidores',
-            value: artist.followers.toLocaleString()
-        }
-    ];
+    // Popularidad y seguidores ya no vienen en la API de Spotify
+    const metadata = [];
 
     return (
         <div className="artist-profile-container">
@@ -148,14 +139,6 @@ const ArtistProfile = () => {
 
             {/* Estadisticas del artista */}
             <div className="artist-stats">
-                <div className="stat-card">
-                    <div className="stat-value">{artist.followers.toLocaleString()}</div>
-                    <div className="stat-label">Seguidores</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-value">{artist.popularity}</div>
-                    <div className="stat-label">Popularidad</div>
-                </div>
                 <div className="stat-card">
                     <div className="stat-value">{topTracks.length}</div>
                     <div className="stat-label">Top Canciones</div>

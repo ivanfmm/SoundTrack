@@ -71,15 +71,19 @@ const Home = () => {
         } else {
             try {
                 const tracksData = await getTopTracks();
-                const formattedSongs = tracksData.map(item => ({
-                    id: item.track.id,
-                    name: item.track.name,
-                    imageUrl: item.track.album.images[0]?.url,
-                    subtitle: item.track.artists[0].name,
+                // Ahora getTopTracks regresa canciones directo (antes eran items de playlist)
+                const formattedSongs = tracksData.map(track => ({
+                    id: track.id,
+                    name: track.name,
+                    imageUrl: track.album.images[0]?.url,
+                    subtitle: track.artists[0]?.name,
                     score: 5
                 }));
                 
-                localStorage.setItem("topSongs", JSON.stringify(formattedSongs));
+                // No guardar en cache una lista vacia, si no nunca se vuelve a pedir
+                if (formattedSongs.length > 0) {
+                    localStorage.setItem("topSongs", JSON.stringify(formattedSongs));
+                }
                 setTopSongs(formattedSongs);
             } catch (error) {
                 console.error('Error fetching top songs:', error);
@@ -100,10 +104,12 @@ const Home = () => {
                     id: artist.id,
                     name: artist.name,
                     imageUrl: artist.images[0]?.url,
-                    subtitle: `${artist.followers.total.toLocaleString()} seguidores`
+                    subtitle: artist.genres?.[0] || 'Artista'
                 }));
                 
-                localStorage.setItem("topArtists", JSON.stringify(formattedArtists));
+                if (formattedArtists.length > 0) {
+                    localStorage.setItem("topArtists", JSON.stringify(formattedArtists));
+                }
                 setTopArtists(formattedArtists);
             } catch (error) {
                 console.error('Error fetching top artists:', error);

@@ -34,7 +34,7 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
     }
 }
 
-const target = 'https://soundtrack-g5heebcugtduaxae.canadacentral-01.azurewebsites.net/';
+const target = 'https://127.0.0.1:7232';
 
 // https://vitejs.dev/config/
 export default defineConfig({

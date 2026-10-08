@@ -12,7 +12,7 @@ namespace SoundTrack.Server.Controllers
 		public IActionResult Login()
 		{
 
-			var redirectUrl = "https://soundtrack-g5heebcugtduaxae.canadacentral-01.azurewebsites.net/";
+			var redirectUrl = "https://127.0.0.1:49825/";
 
 			var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
 

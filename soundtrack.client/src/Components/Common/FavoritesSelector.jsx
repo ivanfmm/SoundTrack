@@ -83,7 +83,7 @@ const FavoritesSelector = ({ type, onSelect, currentCount, maxCount = 3 }) => {
                                 <p className="result-name">{item.name}</p>
                                 <p className="result-subtitle">
                                     {type === 'artist' 
-                                        ? `${item.followers?.total?.toLocaleString() || 0} seguidores`
+                                        ? (item.genres?.[0] || 'Artista')
                                         : item.artists?.map(a => a.name).join(', ') || ''
                                     }
                                 </p>

@@ -119,6 +119,17 @@ namespace SoundTrack.Server
 					var accessToken = context.AccessToken;
 					var refreshToken = context.RefreshToken;
 					var email = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+					var userName = email;
+
+					// Desde feb 2026 Spotify ya no manda el email en GET /me.
+					// Se usa el id de Spotify (no cambia) para generar un email interno unico,
+					// porque Identity tiene RequireUniqueEmail = true y el resto del backend busca por email
+					var spotifyId = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+					if (string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(spotifyId))
+					{
+						email = $"{spotifyId}@spotify.soundtrack.local";
+						userName = $"spotify_{spotifyId}";
+					}
 
 					if (email != null)
 					{
@@ -132,12 +143,18 @@ namespace SoundTrack.Server
 						{
 							user = new User
 							{
-								UserName = email,
+								UserName = userName,
 								Email = email,
 								EmailConfirmed = true,
 								CreateDate = DateTime.UtcNow
 							};
-							await userManager.CreateAsync(user);
+							var createResult = await userManager.CreateAsync(user);
+							if (!createResult.Succeeded)
+							{
+								// Sin esto el error se perdia y despues tronaba UpdateAsync
+								Console.WriteLine("Error creando usuario de Spotify: " + string.Join(", ", createResult.Errors.Select(e => e.Description)));
+								return;
+							}
 						}
 
 						// Guardar tokens

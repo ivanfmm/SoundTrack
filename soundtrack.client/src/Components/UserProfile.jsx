@@ -86,7 +86,7 @@ const UserProfile = () => {
                     id: a.id,
                     name: a.name,
                     imageUrl: a.images[0]?.url,
-                    subtitle: `${a.followers.total.toLocaleString()} seguidores`
+                    subtitle: a.genres?.[0] || 'Artista'
                 })));
             }
 
@@ -244,7 +244,7 @@ const UserProfile = () => {
             name: item.name,
             imageUrl: item.images?.[0]?.url || item.album?.images?.[0]?.url,
             subtitle: type === 'artist'
-                ? `${item.followers?.total?.toLocaleString() || 0} seguidores`
+                ? (item.genres?.[0] || 'Artista')
                 : item.artists?.map(a => a.name).join(', ') || ''
         };
 

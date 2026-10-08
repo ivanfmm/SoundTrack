@@ -78,74 +78,61 @@ export const getToken = async () => {
    
 
 
+// Lee la respuesta de Spotify. Si hubo error regresa null en vez de tronar con JSON.parse
+// (Spotify a veces responde texto plano, por ejemplo el 403 de "Active premium subscription required")
+const readSpotifyResponse = async (response) => {
+    if (!response.ok) {
+        const text = await response.text();
+        console.error(`Spotify respondio ${response.status}:`, text);
+        return null;
+    }
+    return response.json();
+};
+
+// Canciones populares del anio actual
+// Desde feb 2026 Spotify solo deja leer playlists propias, por eso se usa la busqueda
 export const getTopTracks = async () => {
     const token = await getToken();
-    
     if (!token) return [];
-    
-    // Usar la playlist de artistas que Si funciona
-    const url = 'https://api.spotify.com/v1/playlists/5iwkYfnHAGMEFLiHFFGnP4/tracks?limit=10';
-    
-    
-    const response = await fetch(url, {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
-    
-    const data = await response.json();
-    
-    
-    return data.items;
-};
-// Top 10 Artistas de la playlist "Most Followed Artists"
-export const getTopArtists = async () => {
-    const token = await getToken();
-    
-    
-    if (!token) return [];
-    
-    // Playlist de artistas mas seguidos
-    const url = `https://api.spotify.com/v1/playlists/4i96DEnCkGkhBRcI9SYuc4/tracks?limit=10`;
-    
-    
-    const response = await fetch(url, {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
-    
-    const data = await response.json();
-    
-    
-    // Extraer artistas unicos de las canciones
-    const artistsMap = new Map();
-    data.items.forEach(item => {
-        if (item.track && item.track.artists) {
-            const artist = item.track.artists[0];
-            if (!artistsMap.has(artist.id)) {
-                artistsMap.set(artist.id, artist);
-            }
-        }
-    });
-    
-    const uniqueArtists = Array.from(artistsMap.values()).slice(0, 10);
-    
-    
-    // Obtener detalles completos de cada artista (imagenes, seguidores)
-    const artistDetailsPromises = uniqueArtists.map(artist => 
-        fetch(`https://api.spotify.com/v1/artists/${artist.id}`, {
+
+    const year = new Date().getFullYear();
+    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(`year:${year}`)}&type=track&limit=10`;
+
+    try {
+        const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
-        }).then(res => res.json())
-    );
-    
-    const artistsDetails = await Promise.all(artistDetailsPromises);
-    
-    
-    // Ordenar por seguidores (de mayor a menor)
-    artistsDetails.sort((a, b) => b.followers.total - a.followers.total);
-    
-    return artistsDetails.slice(0, 10);
+        });
+        const data = await readSpotifyResponse(response);
+        return data?.tracks?.items || [];
+    } catch (error) {
+        console.error("Error en getTopTracks:", error);
+        return [];
+    }
+};
+
+// Top artistas sacados de las canciones populares
+export const getTopArtists = async () => {
+    const tracks = await getTopTracks();
+    const token = await getToken();
+    if (!token) return [];
+
+    // Extraer artistas unicos de las canciones
+    const artistIds = [...new Set(tracks.map(track => track.artists[0]?.id).filter(Boolean))].slice(0, 10);
+
+    try {
+        // Spotify quito el endpoint por lotes (/artists?ids=), se piden uno por uno
+        const artists = await Promise.all(artistIds.map(id =>
+            fetch(`https://api.spotify.com/v1/artists/${id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }).then(readSpotifyResponse)
+        ));
+
+        // Ya no se ordena por seguidores: Spotify quito el campo followers
+        return artists.filter(Boolean);
+    } catch (error) {
+        console.error("Error en getTopArtists:", error);
+        return [];
+    }
 };
 
 export const getArtistById = async (artistId) => {
@@ -168,10 +155,10 @@ export const getArtistById = async (artistId) => {
             }
         );
         
-        const data = await response.json();
+        const data = await readSpotifyResponse(response);
         
-        if (data.error) {
-            console.error(" Error obteniendo artista:", data.error);
+        if (!data) {
+            console.error(" Error obteniendo artista:");
             return null;
         }
         
@@ -184,30 +171,29 @@ export const getArtistById = async (artistId) => {
     }
 };
 
-export const getArtistTopTracks = async (artistId) => {
+// Spotify elimino /artists/{id}/top-tracks (feb 2026), se usa la busqueda por nombre
+export const getArtistTopTracks = async (artistId, artistName) => {
     const token = await getToken();
-    
-    if (!token) return [];
-    
+
+    if (!token || !artistName) return [];
+
     try {
-        const response = await fetch(
-            `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+        const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(`artist:"${artistName}"`)}&type=track&limit=10`;
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
+        });
+
+        const data = await readSpotifyResponse(response);
+
+        if (!data) return [];
+
+        // Solo canciones donde participa este artista (la busqueda puede traer homonimos)
+        return (data.tracks?.items || []).filter(track =>
+            track.artists.some(a => a.id === artistId)
         );
-        
-        const data = await response.json();
-        
-        if (data.error) {
-            console.error("Error obteniendo top tracks:", data.error);
-            return [];
-        }
-        
-        return data.tracks || [];
-        
+
     } catch (error) {
         console.error("Error en getArtistTopTracks:", error);
         return [];
@@ -229,10 +215,10 @@ export const getArtistAlbums = async (artistId) => {
             }
         );
         
-        const data = await response.json();
+        const data = await readSpotifyResponse(response);
         
-        if (data.error) {
-            console.error("Error obteniendo albums:", data.error);
+        if (!data) {
+            console.error("Error obteniendo albums:");
             return [];
         }
         
@@ -264,10 +250,10 @@ export const getAlbumById = async (albumId) => {
             }
         );
         
-        const data = await response.json();
+        const data = await readSpotifyResponse(response);
         
-        if (data.error) {
-            console.error("Error obteniendo album:", data.error);
+        if (!data) {
+            console.error("Error obteniendo album:");
             return null;
         }
         
@@ -301,10 +287,10 @@ export const searchSpotify = async (query) => {
             }
         });
         
-        const data = await response.json();
+        const data = await readSpotifyResponse(response);
         
-        if (data.error) {
-            console.error("Error en busqueda:", data.error);
+        if (!data) {
+            console.error("Error en busqueda:");
             return { tracks: [], artists: [], albums: [] };
         }
         
@@ -347,10 +333,10 @@ export const getTrackById = async (trackId) => {
             }
         );
         
-        const data = await response.json();
+        const data = await readSpotifyResponse(response);
         
-        if (data.error) {
-            console.error("Error obteniendo track:", data.error);
+        if (!data) {
+            console.error("Error obteniendo track:");
             return null;
         }
         

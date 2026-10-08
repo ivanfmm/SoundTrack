@@ -35,7 +35,7 @@ const Searched = () => {
                 id: artist.id,
                 name: artist.name,
                 imageUrl: artist.images[0]?.url,
-                subtitle: `${artist.followers.total.toLocaleString()} seguidores`
+                subtitle: artist.genres?.[0] || 'Artista'
             })),
             albums: data.albums.map(album => ({
                 id: album.id,

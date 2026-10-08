@@ -142,7 +142,8 @@ namespace SoundTrack.Server.Services
                 PublicationDate = DateTime.UtcNow,
                 Genres = spotifyData.Genres ?? new List<string>(),
                 Tags = new List<string>(),
-                Description = $"{spotifyData.Name} tiene {spotifyData.Followers.Total:N0} seguidores"
+                // Spotify quito followers del artista (feb 2026)
+                Description = $"{spotifyData.Name} en Spotify"
             };
 
             _context.ArtistProfiles.Add(artist);
@@ -361,8 +362,9 @@ namespace SoundTrack.Server.Services
         [JsonPropertyName("images")]
         public List<SpotifyImage> Images { get; set; }
 
+        // Ya no viene en la API (feb 2026), se deja nullable por compatibilidad
         [JsonPropertyName("followers")]
-        public SpotifyFollowers Followers { get; set; }
+        public SpotifyFollowers? Followers { get; set; }
 
         [JsonPropertyName("genres")]
         public List<string> Genres { get; set; }
