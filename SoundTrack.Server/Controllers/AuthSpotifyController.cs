@@ -8,11 +8,21 @@ namespace SoundTrack.Server.Controllers
 	[Route("api/[controller]")] // Crea la ruta base /api/AuthSpotify
 	public class AuthSpotifyController : ControllerBase
 	{
+		private readonly IConfiguration _configuration;
+
+		public AuthSpotifyController(IConfiguration configuration)
+		{
+			_configuration = configuration;
+		}
+
+		// A donde regresar despues del login: "/" en Vercel (mismo dominio), el puerto de Vite en local
+		private string FrontendUrl => _configuration["FrontendUrl"] ?? "/";
+
 		[HttpGet("login")] // Completa la ruta /api/AuthSpotify/login
 		public IActionResult Login()
 		{
 
-			var redirectUrl = "https://127.0.0.1:49825/";
+			var redirectUrl = FrontendUrl;
 
 			var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
 
@@ -24,7 +34,7 @@ namespace SoundTrack.Server.Controllers
 		public IActionResult Callback()
 		{
 			// Despues del login redirige al frontend
-			return Redirect("https://127.0.0.1:49825/");
+			return Redirect(FrontendUrl);
 		}
 	}
 }

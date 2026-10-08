@@ -1,0 +1,6 @@
+# No copiar compilados de Windows ni archivos locales a la imagen
+bin/
+obj/
+*.user
+Properties/launchSettings.json
+backend_Dockerfile.txt

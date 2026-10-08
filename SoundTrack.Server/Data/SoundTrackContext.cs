@@ -1,12 +1,16 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SoundTrack.Server.Models;
 
 namespace SoundTrack.Server.Data
 {
-	public class SoundTrackContext : IdentityDbContext<User>
+	public class SoundTrackContext : IdentityDbContext<User>, IDataProtectionKeyContext
 	{
+		// Tabla para las llaves de Data Protection (necesario en Vercel)
+		public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+
 		public DbSet<ArtistProfile> ArtistProfiles { get; set; }
 		public DbSet<AlbumProfile> AlbumProfiles { get; set; }
 		public DbSet<SongProfile> SongProfiles { get; set; }

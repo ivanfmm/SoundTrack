@@ -1,0 +1,24 @@
+{
+  "services": {
+    "frontend": {
+      "root": "soundtrack.client/",
+      "framework": "vite",
+      "installCommand": "npm ci",
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist",
+      "rewrites": [
+        { "source": "/(.*)", "destination": "/index.html" }
+      ]
+    },
+    "api": {
+      "root": "SoundTrack.Server/",
+      "runtime": "container",
+      "entrypoint": "Dockerfile.vercel"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": { "service": "api" } },
+    { "source": "/signin-spotify", "destination": { "service": "api" } },
+    { "source": "/(.*)", "destination": { "service": "frontend" } }
+  ]
+}

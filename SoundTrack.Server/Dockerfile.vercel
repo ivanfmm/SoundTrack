@@ -1,0 +1,22 @@
+# Imagen del backend para Vercel (runtime "container", ver ../vercel.json)
+# Etapa 1: compilar y publicar con el SDK de .NET 8
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Primero solo el .csproj para aprovechar la cache de Docker en el restore
+COPY SoundTrack.Server.csproj .
+RUN dotnet restore -p:BuildingInDocker=true
+
+COPY . .
+RUN dotnet publish SoundTrack.Server.csproj -c Release -o /app --no-restore -p:BuildingInDocker=true
+
+# Etapa 2: solo el runtime de ASP.NET (imagen mas ligera)
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build /app .
+
+# Program.cs escucha en este puerto (Vercel puede sobreescribir PORT)
+ENV PORT=8080
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "SoundTrack.Server.dll"]

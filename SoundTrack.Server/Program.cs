@@ -4,6 +4,7 @@ using SoundTrack.Server.Data;
 using SoundTrack.Server.Models;
 using SoundTrack.Server.Services;
 using AspNet.Security.OAuth.Spotify;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace SoundTrack.Server
 {
@@ -13,6 +14,14 @@ namespace SoundTrack.Server
 		{
 			AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 			var builder = WebApplication.CreateBuilder(args);
+
+			// En Vercel (contenedor) el puerto llega en la variable PORT.
+			// En local no existe y se usan los puertos de launchSettings.json
+			var port = Environment.GetEnvironmentVariable("PORT");
+			if (!string.IsNullOrEmpty(port))
+			{
+				builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+			}
 
 			
 			var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -40,6 +49,13 @@ namespace SoundTrack.Server
 			builder.Services.AddDbContext<SoundTrackContext>(options =>
 				options.UseNpgsql(databaseConfig!.SupabaseConnection,
 					o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
+
+			// Llaves de Data Protection (cifran cookies de sesion y del login con Spotify).
+			// En Vercel el contenedor se apaga y puede haber varias instancias: si las llaves
+			// vivieran en memoria/disco, cada arranque cerraria la sesion de todos. Se guardan en la BD.
+			builder.Services.AddDataProtection()
+				.PersistKeysToDbContext<SoundTrackContext>()
+				.SetApplicationName("SoundTrack");
 
 			//Identity
 			builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -96,26 +112,11 @@ namespace SoundTrack.Server
 				options.Scope.Add("user-read-email");
 				options.Scope.Add("user-top-read");
 
-
-				options.Events.OnRedirectToAuthorizationEndpoint = context =>
-				{
-					context.Request.Scheme = "https";
-					context.Request.Host = new HostString("127.0.0.1", 7232);
-
-					var redirectUri = context.RedirectUri
-						.Replace("http://", "https://")
-						.Replace("localhost", "127.0.0.1");
-
-					context.Response.Redirect(redirectUri);
-					return Task.CompletedTask;
-				};
+				// El redirect_uri ya no se arma a mano: sale de PublicUrl (ver middleware abajo)
 
 
 				options.Events.OnCreatingTicket = async context =>
 				{
-					context.Request.Scheme = "https";
-					context.Request.Host = new HostString("127.0.0.1", 7232);
-
 					var accessToken = context.AccessToken;
 					var refreshToken = context.RefreshToken;
 					var email = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
@@ -173,6 +174,27 @@ namespace SoundTrack.Server
 			builder.Services.AddSwaggerGen();
 
 			var app = builder.Build();
+
+			// URL publica de la app (local: https://127.0.0.1:7232, Vercel: https://<proyecto>.vercel.app).
+			// Detras del proxy de Vercel la peticion llega por http y con otro host; esto hace que
+			// el redirect_uri de Spotify, las cookies Secure y UseHttpsRedirection usen la URL real.
+			var publicUrl = app.Configuration["PublicUrl"];
+			// Si no se configuro PublicUrl, en Vercel se usa el dominio de produccion que Vercel inyecta solo
+			var vercelDomain = Environment.GetEnvironmentVariable("VERCEL_PROJECT_PRODUCTION_URL");
+			if (string.IsNullOrEmpty(publicUrl) && !string.IsNullOrEmpty(vercelDomain))
+			{
+				publicUrl = $"https://{vercelDomain}";
+			}
+			if (!string.IsNullOrEmpty(publicUrl))
+			{
+				var publicUri = new Uri(publicUrl);
+				app.Use((context, next) =>
+				{
+					context.Request.Scheme = publicUri.Scheme;
+					context.Request.Host = new HostString(publicUri.Authority);
+					return next();
+				});
+			}
 
 			app.UseDefaultFiles();
 			app.UseStaticFiles();

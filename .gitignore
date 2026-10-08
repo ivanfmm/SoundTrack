@@ -598,3 +598,5 @@ vite.config.ts.timestamp-*
 
 
 #comentario
+# Variables reales de Vercel (no subir)
+.env.vercel
